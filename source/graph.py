@@ -1,3 +1,6 @@
+# TODO
+# 1. Convert UTC times from the JSON into EST dates for Python
+
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
