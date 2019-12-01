@@ -1,40 +1,24 @@
-# import matplotlib.pyplot as plt
-# import matplotlib as mpl
-# import numpy as np
-# import datetime as dt
-
-# # Make a series of events 1 day apart
-# x = mpl.dates.drange(dt.datetime(2009,10,1), 
-#                      dt.datetime(2010,1,15), 
-#                      dt.timedelta(days=1))
-# # Vary the datetimes so that they occur at random times
-# # Remember, 1.0 is equivalent to 1 day in this case...
-# x += np.random.random(x.size)
-
-# # We can extract the time by using a modulo 1, and adding an arbitrary base date
-# times = x % 1 + int(x[0]) # (The int is so the y-axis starts at midnight...)
-
-# # I'm just plotting points here, but you could just as easily use a bar.
-# fig = plt.figure()
-# ax = fig.add_subplot(111)
-# ax.plot_date(x, times, 'ro')
-# ax.yaxis_date()
-# fig.autofmt_xdate()
-
-# # print(times[5])
-# # print(times)
-# plt.show()
-import numpy as np
 import matplotlib.pyplot as plt
-import datetime
+import matplotlib.dates as mdates
 
-x = [datetime.datetime(2010, 12, 1, 10, 0),
-     datetime.datetime(2011, 1, 4, 9, 0),
-     datetime.datetime(2011, 5, 5, 9, 0)]
-y = [4, 9, 2]
+date = ['3 Jan 2013', '4 Jan 2013', '5 Jan 2013', '6 Jan 2013', '7 Jan 2013',
+        '8 Jan 2013', '9 Jan 2013', '10 Jan 2013', '11 Jan 2013', '12 Jan 2013',
+        '13 Jan 2013', '14 Jan 2013']
+time = ['16:44:00', '16:45:00', '16:46:00', '16:47:00', '16:48:00', '16:49:00',
+        '16:51:00', '16:52:00', '16:53:00', '16:55:00', '16:56:00', '16:57:00']
 
-ax = plt.subplot(111)
-ax.bar(x, y, width=10)
+# Convert to matplotlib's internal date format.
+x = mdates.datestr2num(date)
+y = mdates.datestr2num(time)
+
+print(y)
+
+fig, ax = plt.subplots()
+
+ax.plot(x, y, 'ro-')
+ax.yaxis_date()
 ax.xaxis_date()
 
+# Optional. Just rotates x-ticklabels in this case.
+fig.autofmt_xdate()
 plt.show()
