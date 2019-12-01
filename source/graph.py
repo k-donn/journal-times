@@ -1,8 +1,8 @@
 # TODO
-# 1. Make window full screen
-# 2. Use a cmd paramter for data filename
-# 3. Color dots based on entry type
-# 4. Ascertain Chuthulu and fix Qt backend import issue
+# 1. Use a cmd paramter for data filename
+# 2. Color dots based on entry type
+# 3. Ascertain Chuthulu and fix Qt backend import issue
+# 4. Put in README how to export Day One data
 
 from typing import Type, Dict, List
 from matplotlib.axes._subplots import Axes
@@ -17,8 +17,15 @@ import numpy as np
 import datetime
 import pytz
 import json
+import argparse
 
-with open("data/Daily.json", "r") as f:
+parser = argparse.ArgumentParser(prog="python3.7 source/graph.py",
+    description="Display a graph of journal entries from Day One JSON")
+parser.add_argument("file", help="Path to exported Day One JSON file")
+
+args = parser.parse_args()
+
+with open(args.file, "r") as f:
     daily = json.load(f)
 
 raw_dates: List[str] = [entry["creationDate"] for entry in daily["entries"]]
@@ -64,11 +71,5 @@ figManager = plt.get_current_fig_manager()
 figManager.window.showMaximized()
 figManager.set_window_title("Journal Entry times")
 
-# plt.subplots_adjust(top=0.928,
-#                     bottom=0.098,
-#                     left=0.058,
-#                     right=0.987,
-#                     hspace=0.2,
-#                     wspace=0.2)
 
 plt.show()
