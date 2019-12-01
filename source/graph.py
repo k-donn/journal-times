@@ -1,9 +1,13 @@
 # TODO
-# 1. Apply timezones dynamically instead of all just in NY
+# 1. Make window full screen
+# 2. Use a cmd paramter for data filename
+# 3. Color dots based on entry type
+# 4. Ascertain Chuthulu and fix Qt backend import issue
 
 from typing import Type, Dict, List
 from matplotlib.axes._subplots import Axes
 from matplotlib.figure import Figure
+# from matplotlib.backends.backend_qt5 import FigureManagerQT
 
 from matplotlib.dates import (
     MONTHLY, DateFormatter, rrulewrapper, RRuleLocator)
@@ -35,20 +39,36 @@ x_formatter: Type[DateFormatter] = DateFormatter("%m/%d/%y")
 
 y_formatter: Type[DateFormatter] = DateFormatter("%H:%M:%S")
 
+
 fig: Type[Figure] = plt.figure()
 ax: Type[Axes] = fig.add_subplot(111)
 
 ax.plot_date(days, y_vals, "ro")
 ax.xaxis_date()
+ax.set_xlabel("Date", fontdict={"fontsize": 15})
 ax.get_xaxis().set_major_locator(x_loc)
 ax.get_xaxis().set_major_formatter(x_formatter)
 ax.get_xaxis().set_tick_params(rotation=30)
 
 ax.yaxis_date()
+ax.set_ylabel("Time of day", fontdict={"fontsize": 15})
 ax.get_yaxis().set_major_formatter(y_formatter)
 # Display morning on top and midnight on bottom. This is different than what
 # we did at assigning `y_vals`
 ax.invert_yaxis()
 
+ax.set_title("Journal entry date/time of day",
+             fontdict={"fontsize": 18}, pad=25)
+
+figManager = plt.get_current_fig_manager()
+figManager.window.showMaximized()
+figManager.set_window_title("Journal Entry times")
+
+# plt.subplots_adjust(top=0.928,
+#                     bottom=0.098,
+#                     left=0.058,
+#                     right=0.987,
+#                     hspace=0.2,
+#                     wspace=0.2)
 
 plt.show()
