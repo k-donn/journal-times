@@ -1,9 +1,10 @@
 # Journal Entry Times
-A visual representation of each of the times I made an entry into my journal.
+A visual representation of each of the times an entry is made into a Day One journal.
 
 ## Running
 To run from the root dir:
-- First Copy your exported diary JSON into ./data/
+- Install all dependencies needed from requirements.txt
+- Copy your exported diary JSON into ./data/
 ```sh
 python3 ./source/graph.py
 ```
