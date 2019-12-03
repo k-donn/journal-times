@@ -1,12 +1,11 @@
 # TODO
 # 1. Color dots based on entry type
-# 2. Ascertain Chuthulu and fix Qt backend import issue
-# 3. Put in README how to export Day One data
+# 2. Put in README how to export Day One data
 
 from typing import Type, Dict, List
 from matplotlib.axes._subplots import Axes
 from matplotlib.figure import Figure
-# from matplotlib.backends.backend_qt5 import FigureManagerQT
+from matplotlib.backends.backend_qt5 import FigureManagerQT
 
 from matplotlib.dates import (
     HOURLY, WEEKLY, DateFormatter, rrulewrapper, RRuleLocator)
@@ -17,6 +16,8 @@ import datetime
 import pytz
 import json
 import argparse
+
+mpl.use("Qt5Agg")
 
 parser = argparse.ArgumentParser(prog="python3.7 source/graph.py",
                                  description="Display a graph of journal entries from Day One JSON")
@@ -73,7 +74,7 @@ ax.invert_yaxis()
 ax.set_title("Journal entry date/time of day",
              fontdict={"fontsize": 18}, pad=25)
 
-figManager = plt.get_current_fig_manager()
+figManager: [FigureManagerQT] = plt.get_current_fig_manager()
 figManager.window.showMaximized()
 figManager.set_window_title("Journal Entry times")
 
