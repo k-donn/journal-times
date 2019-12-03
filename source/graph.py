@@ -1,6 +1,5 @@
 # TODO
-# 1. Color dots based on entry type
-# 2. Put in README how to export Day One data
+# 1. Put in README how to export Day One data
 
 from typing import Type, Dict, List
 from matplotlib.axes._subplots import Axes
@@ -30,16 +29,38 @@ with open(args.file, "r") as f:
 
 raw_dates: List[str] = [entry["creationDate"] for entry in daily["entries"]]
 
+colors: List[str] = []
+for entry in daily["entries"]:
+    if "tags" in entry:
+        tag = entry["tags"][0]
+        if tag == "daily":
+            colors.append("bo")
+        elif tag == "dreams":
+            colors.append("ro")
+        else:
+            colors.append("go")
+    else:
+        colors.append("go")
+
 full_dates: List[Type[datetime.datetime]] = [datetime.datetime.strptime(
     raw_date, "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York")) for raw_date in raw_dates]
 
 
-days: List[float] = [mpl.dates.date2num(
+x_vals: List[float] = [mpl.dates.date2num(
     full_day.date()) for full_day in full_dates]
 # Y-values get inverted for some time-zone related reason.
 y_vals: List[float] = [
-    (int(days[0]) + abs(1.0 - (mpl.dates.date2num(full_day) % 1))) for full_day in full_dates]
+    (int(x_vals[0]) + abs(1.0 - (mpl.dates.date2num(full_day) % 1))) for full_day in full_dates]
 
+combined_vals = [[x_val, y_val] for x_val, y_val in list(zip(x_vals, y_vals))]
+
+combined_vals_color = []
+for index, vals in enumerate(combined_vals):
+    combined_vals_color.append({"color": colors[index], "values": vals})
+
+# print(f"Color length: {len(colors)}")
+# print(f"Vals length: {len(combined_vals)}")
+# print(f"Combined both: {len(combined_vals_color)}")
 
 x_rule: Type[rrulewrapper] = rrulewrapper(WEEKLY)
 x_loc: Type[RRuleLocator] = RRuleLocator(x_rule)
@@ -53,10 +74,18 @@ y_formatter: Type[DateFormatter] = DateFormatter("%H:%M:%S")
 fig: Type[Figure] = plt.figure()
 ax: Type[Axes] = fig.add_subplot(111)
 
-ax.plot_date(days, y_vals, "ro")
+X_VAL: int = 0
+Y_VAL: int = 1
+
+# ax.plot_date(x_vals, y_vals, "ro")
+for point in combined_vals_color:
+    color, values = point.items()
+    ax.plot(point["values"][X_VAL], point["values"][Y_VAL], point["color"])
+
 ax.xaxis_date()
 # Pad the x on the left five in the past and pad the right five in the future
-ax.set_xlim(left=(min(days) - 5), right=(mpl.dates.date2num(datetime.datetime.now().date()) + 5))
+ax.set_xlim(left=(min(x_vals) - 5),
+            right=(mpl.dates.date2num(datetime.datetime.now().date()) + 5))
 ax.set_xlabel("Date", fontdict={"fontsize": 15})
 ax.get_xaxis().set_major_locator(x_loc)
 ax.get_xaxis().set_major_formatter(x_formatter)
