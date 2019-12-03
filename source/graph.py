@@ -52,11 +52,11 @@ x_vals: List[float] = [mpl.dates.date2num(
 y_vals: List[float] = [
     (int(x_vals[0]) + abs(1.0 - (mpl.dates.date2num(full_day) % 1))) for full_day in full_dates]
 
-combined_vals = [[x_val, y_val] for x_val, y_val in list(zip(x_vals, y_vals))]
+combined_vals: List[List[int]] = [[x_val, y_val]
+                                  for x_val, y_val in zip(x_vals, y_vals)]
 
-combined_vals_color = []
-for index, vals in enumerate(combined_vals):
-    combined_vals_color.append({"color": colors[index], "values": vals})
+combined_vals_color: List[Dict[str, str]] = [
+    {"color": color, "values": vals} for color, vals in zip(colors, combined_vals)]
 
 # print(f"Color length: {len(colors)}")
 # print(f"Vals length: {len(combined_vals)}")
@@ -77,9 +77,8 @@ ax: Type[Axes] = fig.add_subplot(111)
 X_VAL: int = 0
 Y_VAL: int = 1
 
-# ax.plot_date(x_vals, y_vals, "ro")
 for point in combined_vals_color:
-    color, values = point.items()
+    color, values = point
     ax.plot(point["values"][X_VAL], point["values"][Y_VAL], point["color"])
 
 ax.xaxis_date()
