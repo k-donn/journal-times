@@ -1,5 +1,6 @@
 # TODO
-# 1. Put in README how to export Day One data
+# 1. Add legend
+# 2. Put in README how to export Day One data
 
 # Types
 from typing import Type, Dict, List, Tuple, Set
