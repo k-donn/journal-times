@@ -1,5 +1,5 @@
 # TODO
-# 1. Add legend
+# 1. Refactor color mapping into point creation
 # 2. Put in README how to export Day One data
 
 # Types
@@ -133,7 +133,7 @@ def add_legend(plt, tags, colors) -> Type[Legend]:
     tags.append("none")
     _colors.append("k")
     for tag, color in zip(tags, (_colors)):
-        lines.append(Line2D([], [], color=color[0], label=tag,
+        lines.append(Line2D([], [], color=color, label=tag,
                             marker="o", linestyle="none"))
 
     return plt.legend(lines, tags)
