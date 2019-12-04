@@ -2,7 +2,7 @@
 # 1. Put in README how to export Day One data
 
 # Types
-from typing import Type, Dict, List, Tuple
+from typing import Type, Dict, List, Tuple, Set
 from matplotlib.axes._subplots import Axes
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5 import FigureManagerQT
@@ -26,20 +26,32 @@ def calc_full_dates(raw_dates: List[str]) -> List[Type[datetime.datetime]]:
     return full_dates
 
 
-def calc_colors() -> List[str]:
-    colors: List[str] = []
-    for entry in daily["entries"]:
+def calc_colors(entries: List[str]) -> List[str]:
+    res: List[str] = []
+    avail_tags: List[str] = find_tags(entries)
+    print(avail_tags)
+    colors: List[str] = ["bo", "go", "ro", "co", "mo"]
+    for entry in entries:
         if "tags" in entry:
             tag = entry["tags"][0]
-            if tag == "daily":
-                colors.append("bo")
-            elif tag == "dreams":
-                colors.append("ro")
-            else:
-                colors.append("go")
+            for index, avail_tag in enumerate(avail_tags):
+                if tag == avail_tag:
+                    res.append(colors[index])
+
         else:
-            colors.append("go")
-    return colors
+            res.append("ko")
+    return res
+
+
+def find_tags(entries: List[str]) -> List[str]:
+    avail_tags = set()
+
+    for entry in entries:
+        if "tags" in entry:
+            for tag in entry["tags"]:
+                avail_tags.add(tag)
+
+    return sorted(avail_tags)
 
 
 def calc_points(raw_dates: List[str]) -> Tuple[List[float], List[float], List[List[float]]]:
@@ -128,6 +140,8 @@ if __name__ == "__main__":
     with open(args.file, "r") as f:
         daily = json.load(f)
 
+    entries: List[str] = [entry for entry in daily["entries"]]
+
     raw_dates: List[str] = [entry["creationDate"]
                             for entry in daily["entries"]]
 
@@ -135,7 +149,7 @@ if __name__ == "__main__":
     ax: Type[Axes] = fig.add_subplot(111)
 
     x_vals, y_vals, combined_points = calc_points(raw_dates)
-    colors = calc_colors()
+    colors = calc_colors(entries)
     combined_points_colors = combine_points_colors(combined_points, colors)
 
     plot_values(ax, combined_points_colors)
