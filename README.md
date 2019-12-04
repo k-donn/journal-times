@@ -6,7 +6,7 @@ To run from the root dir:
 - Install all dependencies needed from requirements.txt
 - Copy your exported diary JSON into ./data/
 ```sh
-python3 ./source/graph.py
+python3 ./source/graph.py ./data/<DIARY>.json
 ```
 
 ## Inspiration
