@@ -1,5 +1,10 @@
 # TODO
 # 1. Refactor color mapping into point creation
+#   - Basically, go through all of the entries one by one
+#   - Get the tag and date for that entry
+#   - Have a seperate calc_color that makes the color_map
+#   - Use that color map directly in iterating over entries
+#   - No need to keep track of temp lists that rely on order
 # 2. Put in README how to export Day One data
 
 # Types
