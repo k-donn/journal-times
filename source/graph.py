@@ -29,10 +29,36 @@ import argparse
 _colors: List[str] = ["b", "g", "r", "c", "m"]
 
 
-def calc_full_dates(raw_dates: List[str]) -> List[Type[datetime.datetime]]:
-    full_dates: List[Type[datetime.datetime]] = [datetime.datetime.strptime(
-        raw_date, "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York")) for raw_date in raw_dates]
-    return full_dates
+def parse_entries(full_json):
+    parsed_entries = []
+    color_map: Dict[str, str] = calc_color_map(full_json)
+    x_0 = mpl.dates.date2num(datetime.datetime.strptime(
+        full_json["entries"][0]["creationDate"], "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York")))
+    for entry in full_json["entries"]:
+        entry_info = {}
+        date = datetime.datetime.strptime(
+            entry["creationDate"], "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York"))
+        x_val = mpl.dates.date2num(date.date())
+        y_val = int(x_0) + abs(1.0 - (mpl.dates.date2num(date) % 1))
+        tag: str = ""
+        if "tags" in entry:
+            tag = entry["tags"][0]
+        else:
+            tag = "none"
+        entry_info = {"color": color_map[tag], "values": [x_val, y_val]}
+        parsed_entries.append(entry_info)
+    return parsed_entries, x_0
+
+
+def calc_color_map(full_json):
+    entries: List[str] = [entry for entry in full_json["entries"]]
+    avail_tags: List[str] = find_tags(entries)
+
+    avail_tags.append("none")
+    _colors.append("k")
+
+    # print(dict(zip(avail_tags, _colors)))
+    return dict(zip(avail_tags, _colors))
 
 
 def calc_colors(entries: List[str]) -> List[str]:
@@ -58,28 +84,6 @@ def find_tags(entries: List[str]) -> List[str]:
     return sorted(avail_tags)
 
 
-def calc_points(raw_dates: List[str]) -> Tuple[List[float], List[float], List[List[float]]]:
-    full_dates = calc_full_dates(raw_dates)
-
-    x_vals: List[float] = [mpl.dates.date2num(
-        full_day.date()) for full_day in full_dates]
-    # Y-values get inverted for some time-zone related reason.
-    y_vals: List[float] = [
-        (int(x_vals[0]) + abs(1.0 - (mpl.dates.date2num(full_day) % 1))) for full_day in full_dates]
-
-    combined_xy: List[List[float]] = [[x_val, y_val]
-                                      for x_val, y_val in zip(x_vals, y_vals)]
-
-    return (x_vals, y_vals, combined_xy)
-
-
-def combine_points_colors(points: List[List[int]], colors: List[str]) -> List[Dict[str, str]]:
-    combined_vals_color: List[Dict[str, str]] = [
-        {"color": color, "values": vals} for color, vals in zip(colors, points)]
-
-    return combined_vals_color
-
-
 def plot_values(ax: Type[Axes], points_colors: List[Dict[str, str]]) -> List[Line2D]:
     X_VAL: int = 0
     Y_VAL: int = 1
@@ -90,10 +94,10 @@ def plot_values(ax: Type[Axes], points_colors: List[Dict[str, str]]) -> List[Lin
     return lines
 
 
-def format_x_axis(ax: Type[Axes]) -> None:
+def format_x_axis(ax: Type[Axes], x_0) -> None:
     ax.xaxis_date()
     # Pad the x on the left five in the past and pad the right five in the future
-    ax.set_xlim(left=(min(x_vals) - 5),
+    ax.set_xlim(left=(x_0 - 5),
                 right=(mpl.dates.date2num(datetime.datetime.now().date()) + 5))
     ax.set_xlabel("Date", fontdict={"fontsize": 15})
 
@@ -132,12 +136,12 @@ def format_plot(plt) -> None:
     plt.grid(which="both", axis="both")
 
 
-def add_legend(plt, tags, colors) -> Type[Legend]:
+def add_legend(plt, color_map: Dict[str, str]) -> Type[Legend]:
     lines: List[Line2D] = []
 
-    tags.append("none")
-    _colors.append("k")
-    for tag, color in zip(tags, (_colors)):
+    tags = list(color_map.keys())
+    tag_color_list = map(list, color_map.items())
+    for tag, color in tag_color_list:
         lines.append(Line2D([], [], color=color, label=tag,
                             marker="o", linestyle="none"))
 
@@ -154,25 +158,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with open(args.file, "r") as f:
-        daily = json.load(f)
+        full_json = json.load(f)
 
-    entries: List[str] = [entry for entry in daily["entries"]]
-
-    raw_dates: List[str] = [entry["creationDate"]
-                            for entry in daily["entries"]]
+    points, x_0 = parse_entries(full_json)
 
     fig: Type[Figure] = plt.figure()
     ax: Type[Axes] = fig.add_subplot(111)
 
-    x_vals, y_vals, combined_points = calc_points(raw_dates)
-    tags = find_tags(entries)
-    colors = calc_colors(entries)
-    combined_points_colors = combine_points_colors(combined_points, colors)
+    plot_values(ax, points)
 
-    plot_values(ax, combined_points_colors)
-
-    format_x_axis(ax)
-    format_y_axis(ax, int(y_vals[0]), int(y_vals[0]) + 1)
+    format_x_axis(ax, x_0)
+    format_y_axis(ax, int(x_0), int(x_0) + 1)
 
     ax.set_title("Journal entry date/time of day",
                  fontdict={"fontsize": 18}, pad=25)
@@ -180,7 +176,8 @@ if __name__ == "__main__":
     figManager: [FigureManagerQT] = plt.get_current_fig_manager()
     format_figure(figManager)
 
-    add_legend(plt, tags, colors)
+    color_map: Dict[str, str] = calc_color_map(full_json)
+    add_legend(plt, color_map)
     format_plot(plt)
 
     plt.show()
