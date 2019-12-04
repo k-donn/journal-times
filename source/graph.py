@@ -8,6 +8,7 @@ from matplotlib.axes._subplots import Axes
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5 import FigureManagerQT
 from matplotlib.lines import Line2D
+from matplotlib.legend import Legend
 
 # Actually used
 from matplotlib.dates import (
@@ -20,6 +21,8 @@ import pytz
 import json
 import argparse
 
+_colors: List[str] = ["b", "g", "r", "c", "m"]
+
 
 def calc_full_dates(raw_dates: List[str]) -> List[Type[datetime.datetime]]:
     full_dates: List[Type[datetime.datetime]] = [datetime.datetime.strptime(
@@ -30,17 +33,13 @@ def calc_full_dates(raw_dates: List[str]) -> List[Type[datetime.datetime]]:
 def calc_colors(entries: List[str]) -> List[str]:
     res: List[str] = []
     avail_tags: List[str] = find_tags(entries)
-    print(avail_tags)
-    colors: List[str] = ["bo", "go", "ro", "co", "mo"]
+
+    color_map: Dict[str, str] = dict(zip(avail_tags, _colors))
     for entry in entries:
         if "tags" in entry:
-            tag = entry["tags"][0]
-            for index, avail_tag in enumerate(avail_tags):
-                if tag == avail_tag:
-                    res.append(colors[index])
-
+            res.append(color_map[entry["tags"][0]])
         else:
-            res.append("ko")
+            res.append("k")
     return res
 
 
@@ -49,8 +48,7 @@ def find_tags(entries: List[str]) -> List[str]:
 
     for entry in entries:
         if "tags" in entry:
-            for tag in entry["tags"]:
-                avail_tags.add(tag)
+            avail_tags.add(entry["tags"][0])
 
     return sorted(avail_tags)
 
@@ -67,7 +65,7 @@ def calc_points(raw_dates: List[str]) -> Tuple[List[float], List[float], List[Li
     combined_xy: List[List[float]] = [[x_val, y_val]
                                       for x_val, y_val in zip(x_vals, y_vals)]
 
-    return x_vals, y_vals, combined_xy
+    return (x_vals, y_vals, combined_xy)
 
 
 def combine_points_colors(points: List[List[int]], colors: List[str]) -> List[Dict[str, str]]:
@@ -82,7 +80,7 @@ def plot_values(ax: Type[Axes], points_colors: List[Dict[str, str]]) -> List[Lin
     Y_VAL: int = 1
 
     lines: List[Line2D] = [ax.plot_date(point["values"][X_VAL], point["values"]
-                                        [Y_VAL], point["color"]) for point in points_colors]
+                                        [Y_VAL], f"{point['color']}o", label=point["color"]) for point in points_colors]
 
     return lines
 
@@ -129,6 +127,18 @@ def format_plot(plt) -> None:
     plt.grid(which="both", axis="both")
 
 
+def add_legend(plt, tags, colors) -> Type[Legend]:
+    lines: List[Line2D] = []
+
+    tags.append("none")
+    _colors.append("k")
+    for tag, color in zip(tags, (_colors)):
+        lines.append(Line2D([], [], color=color[0], label=tag,
+                            marker="o", linestyle="none"))
+
+    return plt.legend(lines, tags)
+
+
 if __name__ == "__main__":
     mpl.use("Qt5Agg")
 
@@ -150,6 +160,7 @@ if __name__ == "__main__":
     ax: Type[Axes] = fig.add_subplot(111)
 
     x_vals, y_vals, combined_points = calc_points(raw_dates)
+    tags = find_tags(entries)
     colors = calc_colors(entries)
     combined_points_colors = combine_points_colors(combined_points, colors)
 
@@ -164,6 +175,7 @@ if __name__ == "__main__":
     figManager: [FigureManagerQT] = plt.get_current_fig_manager()
     format_figure(figManager)
 
+    add_legend(plt, tags, colors)
     format_plot(plt)
 
     plt.show()
