@@ -1,10 +1,5 @@
 # TODO
-# 1. Refactor color mapping into point creation
-#   - Basically, go through all of the entries one by one
-#   - Get the tag and date for that entry
-#   - Have a seperate calc_color that makes the color_map
-#   - Use that color map directly in iterating over entries
-#   - No need to keep track of temp lists that rely on order
+# 1. Refactor date calc to function
 # 2. Put in README how to export Day One data
 
 # Types
@@ -28,14 +23,21 @@ import argparse
 
 _colors: List[str] = ["b", "g", "r", "c", "m"]
 
+ColorMap = Dict[str, str]
+Entry = Dict[str, str]
+# The "values" value is actually a list, but 3.7.5
+# doesn't have support for typed dicts
+# (dicts with >1 different typed values).
+PointColorVal = Dict[str, str]
 
-def parse_entries(full_json):
-    parsed_entries = []
-    color_map: Dict[str, str] = calc_color_map(full_json)
-    x_0 = mpl.dates.date2num(datetime.datetime.strptime(
+
+def parse_entries(full_json) -> List[PointColorVal]:
+    parsed_entries: List[PointColorVal] = []
+    color_map: ColorMap = calc_color_map(full_json)
+    x_0: float = mpl.dates.date2num(datetime.datetime.strptime(
         full_json["entries"][0]["creationDate"], "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York")))
     for entry in full_json["entries"]:
-        entry_info = {}
+        entry_info: PointColorVal = {}
         date = datetime.datetime.strptime(
             entry["creationDate"], "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York"))
         x_val = mpl.dates.date2num(date.date())
@@ -47,34 +49,20 @@ def parse_entries(full_json):
             tag = "none"
         entry_info = {"color": color_map[tag], "values": [x_val, y_val]}
         parsed_entries.append(entry_info)
-    return parsed_entries, x_0
+    return (parsed_entries, x_0)
 
 
-def calc_color_map(full_json):
-    entries: List[str] = [entry for entry in full_json["entries"]]
+def calc_color_map(full_json) -> ColorMap:
+    entries: List[Entry] = [entry for entry in full_json["entries"]]
     avail_tags: List[str] = find_tags(entries)
 
     avail_tags.append("none")
     _colors.append("k")
 
-    # print(dict(zip(avail_tags, _colors)))
     return dict(zip(avail_tags, _colors))
 
 
-def calc_colors(entries: List[str]) -> List[str]:
-    res: List[str] = []
-    avail_tags: List[str] = find_tags(entries)
-
-    color_map: Dict[str, str] = dict(zip(avail_tags, _colors))
-    for entry in entries:
-        if "tags" in entry:
-            res.append(color_map[entry["tags"][0]])
-        else:
-            res.append("k")
-    return res
-
-
-def find_tags(entries: List[str]) -> List[str]:
+def find_tags(entries: List[Dict[str, str]]) -> List[str]:
     avail_tags = set()
 
     for entry in entries:
@@ -84,12 +72,12 @@ def find_tags(entries: List[str]) -> List[str]:
     return sorted(avail_tags)
 
 
-def plot_values(ax: Type[Axes], points_colors: List[Dict[str, str]]) -> List[Line2D]:
+def plot_values(ax: Type[Axes], points: List[PointColorVal]) -> List[Line2D]:
     X_VAL: int = 0
     Y_VAL: int = 1
 
     lines: List[Line2D] = [ax.plot_date(point["values"][X_VAL], point["values"]
-                                        [Y_VAL], f"{point['color']}o", label=point["color"]) for point in points_colors]
+                                        [Y_VAL], f"{point['color']}o", label=point["color"]) for point in points]
 
     return lines
 
