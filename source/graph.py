@@ -1,6 +1,5 @@
 # TODO
-# 1. Refactor date calc to function
-# 2. Put in README how to export Day One data
+# 1. Put in README how to export Day One data
 
 # Types
 from typing import Type, Dict, List, Tuple, Set
@@ -34,12 +33,11 @@ PointColorVal = Dict[str, str]
 def parse_entries(full_json) -> List[PointColorVal]:
     parsed_entries: List[PointColorVal] = []
     color_map: ColorMap = calc_color_map(full_json)
-    x_0: float = mpl.dates.date2num(datetime.datetime.strptime(
-        full_json["entries"][0]["creationDate"], "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York")))
+    x_0: float = mpl.dates.date2num(str_to_date(
+        full_json["entries"][0]["creationDate"]))
     for entry in full_json["entries"]:
         entry_info: PointColorVal = {}
-        date = datetime.datetime.strptime(
-            entry["creationDate"], "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York"))
+        date = str_to_date(entry["creationDate"])
         x_val = mpl.dates.date2num(date.date())
         y_val = int(x_0) + abs(1.0 - (mpl.dates.date2num(date) % 1))
         tag: str = ""
@@ -50,6 +48,11 @@ def parse_entries(full_json) -> List[PointColorVal]:
         entry_info = {"color": color_map[tag], "values": [x_val, y_val]}
         parsed_entries.append(entry_info)
     return (parsed_entries, x_0)
+
+
+def str_to_date(date_str: str) -> datetime.datetime:
+    return datetime.datetime.strptime(
+        date_str, "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York"))
 
 
 def calc_color_map(full_json) -> ColorMap:
