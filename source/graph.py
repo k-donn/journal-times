@@ -1,7 +1,9 @@
 # TODO
+# Document functions
+# Refactor parse_entries logic to indivudal func
 
 # Types
-from typing import Type, Dict, List, Tuple, Set
+from typing import Type, Dict, List, Tuple, Set, Union
 from matplotlib.axes._subplots import Axes
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5 import FigureManagerQT
@@ -11,6 +13,8 @@ from matplotlib.legend import Legend
 # Actually used
 from matplotlib.dates import (
     HOURLY, WEEKLY, DateFormatter, rrulewrapper, RRuleLocator)
+import matplotlib.colors as colors
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
@@ -19,17 +23,21 @@ import pytz
 import json
 import argparse
 
-_colors: List[str] = ["b", "g", "r", "c", "m"]
-
-ColorMap = Dict[str, str]
+# Mapping of tag names to unique colors
+ColorMap = Dict[str, Tuple[float, float, float, float]]
+# Properties of a JSON entry
 Entry = Dict[str, str]
-# The "values" value is actually a list, but 3.7.5
-# doesn't have support for typed dicts
-# (dicts with >1 different typed values).
-PointColorVal = Dict[str, str]
+# Represents a point's color and x & y values
+PointColorVal = Dict[str, Union[str, float]]
 
 
-def parse_entries(full_json) -> List[PointColorVal]:
+def extract_json(fname):
+    with open(fname, "r") as f:
+        full_json = json.load(f)
+    return full_json
+
+
+def parse_entries(full_json) -> Tuple[List[PointColorVal], float]:
     parsed_entries: List[PointColorVal] = []
     color_map: ColorMap = calc_color_map(full_json)
     x_0: float = mpl.dates.date2num(str_to_date(
@@ -44,7 +52,8 @@ def parse_entries(full_json) -> List[PointColorVal]:
             tag = entry["tags"][0]
         else:
             tag = "none"
-        entry_info = {"color": color_map[tag], "values": [x_val, y_val]}
+        entry_info = {"color": color_map[tag],
+                      "x_value": x_val, "y_value": y_val}
         parsed_entries.append(entry_info)
     return (parsed_entries, x_0)
 
@@ -58,28 +67,37 @@ def calc_color_map(full_json) -> ColorMap:
     entries: List[Entry] = [entry for entry in full_json["entries"]]
     avail_tags: List[str] = find_tags(entries)
 
-    avail_tags.append("none")
-    _colors.append("k")
+    color_map: ColorMap = {}
 
-    return dict(zip(avail_tags, _colors))
+    minima = 0
+    maxima = len(avail_tags)
+
+    norm: colors.Normalize = colors.Normalize(
+        vmin=minima, vmax=maxima, clip=True)
+    # Intellisense can't find any of the color-map members part of cm
+    mapper: cm.ScalarMappable = cm.ScalarMappable(
+        norm=norm, cmap=cm.hsv)  # pylint: disable=no-member
+
+    color_map = {tag: mapper.to_rgba(index)
+                 for index, tag in enumerate(avail_tags)}
+
+    color_map["none"] = (0.0, 0.0, 0.0, 1.0)
+
+    return color_map
 
 
 def find_tags(entries: List[Dict[str, str]]) -> List[str]:
-    avail_tags = set()
+    avail_tags: List[str] = []
 
-    for entry in entries:
-        if "tags" in entry:
-            avail_tags.add(entry["tags"][0])
+    avail_tags = [entry["tags"][0] for entry in entries if "tags" in entry]
 
-    return sorted(avail_tags)
+    # Sort them to get the same color-mapping each time
+    return sorted(list(set(avail_tags)))
 
 
-def plot_values(ax: Type[Axes], points: List[PointColorVal]) -> List[Line2D]:
-    X_VAL: int = 0
-    Y_VAL: int = 1
-
-    lines: List[Line2D] = [ax.plot_date(point["values"][X_VAL], point["values"]
-                                        [Y_VAL], f"{point['color']}o", label=point["color"]) for point in points]
+def plot_values(ax: Axes, points: List[PointColorVal]) -> List[Line2D]:
+    lines: List[Line2D] = [ax.plot_date(point["x_value"], point["y_value"],
+                                        fmt="o", label=point["color"], color=point["color"]) for point in points]
 
     return lines
 
@@ -117,28 +135,28 @@ def format_y_axis(ax: Type[Axes], bottom: int, top: int) -> None:
     ax.invert_yaxis()
 
 
-def format_figure(figManager: Type[FigureManagerQT]) -> None:
+def format_figure(figManager: FigureManagerQT) -> None:
     figManager.window.showMaximized()
     figManager.set_window_title("Journal Entry times")
 
 
-def format_plot(plt) -> None:
+def format_plot(plt: mpl.pyplot, ax: Axes) -> None:
     plt.grid(which="both", axis="both")
 
+    ax.set_title("Journal entry date/time of day",
+                 fontdict={"fontsize": 18}, pad=25)
 
-def add_legend(plt, color_map: Dict[str, str]) -> Type[Legend]:
-    lines: List[Line2D] = []
 
-    tags = list(color_map.keys())
-    tag_color_list = map(list, color_map.items())
-    for tag, color in tag_color_list:
-        lines.append(Line2D([], [], color=color, label=tag,
-                            marker="o", linestyle="none"))
+def add_legend(plt: mpl.pyplot, color_map: ColorMap) -> Type[Legend]:
+    tags: List[str] = list(color_map.keys())
+
+    lines: List[Line2D] = [Line2D([], [], color=color, label=tag,
+                                  marker="o", linestyle="none") for tag, color in color_map.items()]
 
     return plt.legend(lines, tags)
 
 
-if __name__ == "__main__":
+def main():
     mpl.use("Qt5Agg")
 
     parser = argparse.ArgumentParser(prog="python3.7 source/graph.py",
@@ -147,8 +165,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    with open(args.file, "r") as f:
-        full_json = json.load(f)
+    full_json = extract_json(args.file)
 
     points, x_0 = parse_entries(full_json)
 
@@ -160,14 +177,15 @@ if __name__ == "__main__":
     format_x_axis(ax, x_0)
     format_y_axis(ax, int(x_0), int(x_0) + 1)
 
-    ax.set_title("Journal entry date/time of day",
-                 fontdict={"fontsize": 18}, pad=25)
-
     figManager: [FigureManagerQT] = plt.get_current_fig_manager()
     format_figure(figManager)
 
-    color_map: Dict[str, str] = calc_color_map(full_json)
+    color_map: ColorMap = calc_color_map(full_json)
     add_legend(plt, color_map)
-    format_plot(plt)
+    format_plot(plt, ax)
 
     plt.show()
+
+
+if __name__ == "__main__":
+    main()

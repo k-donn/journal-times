@@ -1,2 +1,4 @@
 .vscode/
 data/*
+*.old.py
+*.DS_STORE
