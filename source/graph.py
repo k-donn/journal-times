@@ -1,6 +1,5 @@
 # TODO
 # Document functions
-# Refactor parse_entries logic to indivudal func
 
 # Types
 from typing import Type, Dict, List, Tuple, Set, Union
@@ -32,12 +31,38 @@ PointColorVal = Dict[str, Union[str, float]]
 
 
 def extract_json(fname):
+    """
+    Extract JSON from supplied Day One journal export.
+
+    Parameters
+    ----------
+    fname: `string` path to file
+
+    Returns
+    -------
+
+    Nested dictionary object with Day One JSON properties
+    """
     with open(fname, "r") as f:
         full_json = json.load(f)
     return full_json
 
 
 def parse_entries(full_json) -> Tuple[List[PointColorVal], float]:
+    """
+    Calculate datetime info, primary tag, and respective color for
+    each entry in the Day One export.
+
+    Parameters
+    ----------
+    full_json: `dict`
+        extracted JSON file
+
+    Returns
+    -------
+    `Tuple` with list and float
+        Represents parsed info about entries and earliest date of entry
+    """
     parsed_entries: List[PointColorVal] = []
     color_map: ColorMap = calc_color_map(full_json)
     x_0: float = mpl.dates.date2num(str_to_date(
@@ -59,11 +84,36 @@ def parse_entries(full_json) -> Tuple[List[PointColorVal], float]:
 
 
 def str_to_date(date_str: str) -> datetime.datetime:
+    """
+    Convert a string in Day One format to a datetime object.
+
+    Parameters
+    ----------
+    date_str: `str`
+        String from an entry in JSON
+
+    Returns
+    -------
+    `datetime.datetime`
+        Parsed datetime object
+    """
     return datetime.datetime.strptime(
         date_str, "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York"))
 
 
 def calc_color_map(full_json) -> ColorMap:
+    """
+    Create a dictionary to map unique tags to unique colors.
+
+    Parameters
+    ----------
+    full_json: `dict`
+
+    Returns
+    -------
+    dictionary of str keys and tuple values
+        Each tag's respective color
+    """
     entries: List[Entry] = [entry for entry in full_json["entries"]]
     avail_tags: List[str] = find_tags(entries)
 
@@ -87,6 +137,25 @@ def calc_color_map(full_json) -> ColorMap:
 
 
 def find_tags(entries: List[Dict[str, str]]) -> List[str]:
+    """
+    Find all unique and primary, that which is first in the `tags` property, in entries.
+
+    Parameters
+    ----------
+    entries: `list` of `dict`
+        Entries property of exported JSON
+
+    Returns
+    -------
+    `list` of `str`
+        List of tags
+
+    Notes
+    -----
+    The returned list is sorted in order to get the same mapping every single time given
+    the same exported JSON
+    """
+
     avail_tags: List[str] = []
 
     avail_tags = [entry["tags"][0] for entry in entries if "tags" in entry]
@@ -96,6 +165,21 @@ def find_tags(entries: List[Dict[str, str]]) -> List[str]:
 
 
 def plot_values(ax: Axes, points: List[PointColorVal]) -> List[Line2D]:
+    """
+    Plot points representing day v. time of day
+
+    Parameters
+    ----------
+    ax: `Axes`
+        The Axes object describing the graph
+    points: `list` of point info
+        List of dicts that represent each entry's day and time of day
+
+    Returns
+    -------
+    `list` of `Line2D` objects
+        The returned objects from the matplotlib plotting function
+    """
     lines: List[Line2D] = [ax.plot_date(point["x_value"], point["y_value"],
                                         fmt="o", label=point["color"], color=point["color"]) for point in points]
 
