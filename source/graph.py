@@ -23,19 +23,39 @@ import argparse
 
 # Mapping of tag names to unique colors
 ColorMap = Dict[str, Tuple[float, float, float, float]]
-# Properties of a JSON entry
-Entry = Dict[str, str]
+
 # Represents a point's color and x & y values
 PointColorVal = Dict[str, Union[str, float]]
 
+# Day One weather properties
+WeatherProps = Dict[str, Union[str, int, float]]
 
-def extract_json(fname):
+# Day One coordinates description
+Coordinates = Dict[str, float]
+
+# Day One location region description
+RegionProps = Dict[str, Union[str, float, Coordinates]]
+
+# Day One location properties
+LocationProps = Dict[str, Union[str, float, RegionProps]]
+
+# Properties of a JSON entry
+Entry = Dict[str, Union[str, bool, int, WeatherProps, LocationProps]]
+
+# Day One export metadata info
+MetadataProps = Dict[str, str]
+
+# structure of an exported journal
+Export = Dict[str, Union[MetadataProps, List[Entry]]]
+
+
+def extract_json(fname: str) -> Export:
     """
     Extract JSON from supplied Day One journal export.
 
     Parameters
     ----------
-    fname: `string` path to file
+    fname: `str` path to file
 
     Returns
     -------
@@ -47,7 +67,7 @@ def extract_json(fname):
     return full_json
 
 
-def parse_entries(full_json) -> Tuple[List[PointColorVal], float]:
+def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
     """
     Calculate datetime info, primary tag, and respective color for
     each entry in the Day One export.
@@ -59,7 +79,7 @@ def parse_entries(full_json) -> Tuple[List[PointColorVal], float]:
 
     Returns
     -------
-    `Tuple` with list and float
+    `tuple` with a `list` and `float`
         Represents parsed info about entries and earliest date of entry
     """
     parsed_entries: List[PointColorVal] = []
@@ -100,7 +120,7 @@ def str_to_date(date_str: str) -> datetime.datetime:
         date_str, "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York"))
 
 
-def calc_color_map(full_json) -> ColorMap:
+def calc_color_map(full_json: Export) -> ColorMap:
     """
     Create a dictionary to map unique tags to unique colors.
 
@@ -110,7 +130,7 @@ def calc_color_map(full_json) -> ColorMap:
 
     Returns
     -------
-    dictionary of str keys and tuple values
+    `dict` of `str` keys and `Tuple` values
         Each tag's respective color
     """
     entries: List[Entry] = [entry for entry in full_json["entries"]]
@@ -135,7 +155,7 @@ def calc_color_map(full_json) -> ColorMap:
     return color_map
 
 
-def find_tags(entries: List[Dict[str, str]]) -> List[str]:
+def find_tags(entries: List[Entry]) -> List[str]:
     """
     Find all unique and primary, that which is first in the `tags` property, in entries.
 
@@ -303,7 +323,7 @@ def main():
 
     args = parser.parse_args()
 
-    full_json = extract_json(args.file)
+    full_json: Export = extract_json(args.file)
 
     points, x_0 = parse_entries(full_json)
 
