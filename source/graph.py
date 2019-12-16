@@ -1,8 +1,7 @@
 # TODO
-# Document functions
 
 # Types
-from typing import Type, Dict, List, Tuple, Set, Union
+from typing import Dict, List, Tuple, Set, Union
 from matplotlib.axes._subplots import Axes
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5 import FigureManagerQT
@@ -155,7 +154,6 @@ def find_tags(entries: List[Dict[str, str]]) -> List[str]:
     The returned list is sorted in order to get the same mapping every single time given
     the same exported JSON
     """
-
     avail_tags: List[str] = []
 
     avail_tags = [entry["tags"][0] for entry in entries if "tags" in entry]
@@ -186,7 +184,7 @@ def plot_values(ax: Axes, points: List[PointColorVal]) -> List[Line2D]:
     return lines
 
 
-def format_x_axis(ax: Type[Axes], x_0: float) -> None:
+def format_x_axis(ax: Axes, x_0: float) -> None:
     """
     Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
@@ -203,16 +201,16 @@ def format_x_axis(ax: Type[Axes], x_0: float) -> None:
                 right=(mpl.dates.date2num(datetime.datetime.now().date()) + 5))
     ax.set_xlabel("Date", fontdict={"fontsize": 15})
 
-    x_rule: Type[rrulewrapper] = rrulewrapper(WEEKLY)
-    x_loc: Type[RRuleLocator] = RRuleLocator(x_rule)
-    x_formatter: Type[DateFormatter] = DateFormatter("%m/%d/%y")
+    x_rule: rrulewrapper = rrulewrapper(WEEKLY)
+    x_loc: RRuleLocator = RRuleLocator(x_rule)
+    x_formatter: DateFormatter = DateFormatter("%m/%d/%y")
 
     ax.get_xaxis().set_major_locator(x_loc)
     ax.get_xaxis().set_major_formatter(x_formatter)
     ax.get_xaxis().set_tick_params(rotation=30)
 
 
-def format_y_axis(ax: Type[Axes], bottom: int, top: int) -> None:
+def format_y_axis(ax: Axes, bottom: int, top: int) -> None:
     """
     Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
@@ -229,9 +227,9 @@ def format_y_axis(ax: Type[Axes], bottom: int, top: int) -> None:
     ax.set_ylim(bottom=bottom, top=top)
     ax.set_ylabel("Time of day", fontdict={"fontsize": 15})
 
-    y_rule: Type[rrulewrapper] = rrulewrapper(HOURLY)
-    y_loc: Type[RRuleLocator] = RRuleLocator(y_rule)
-    y_formatter: Type[DateFormatter] = DateFormatter("%H:%M:%S")
+    y_rule: rrulewrapper = rrulewrapper(HOURLY)
+    y_loc: RRuleLocator = RRuleLocator(y_rule)
+    y_formatter: DateFormatter = DateFormatter("%H:%M:%S")
 
     ax.get_yaxis().set_major_locator(y_loc)
     ax.get_yaxis().set_major_formatter(y_formatter)
@@ -270,7 +268,7 @@ def format_plot(plt: mpl.pyplot, ax: Axes) -> None:
                  fontdict={"fontsize": 18}, pad=25)
 
 
-def add_legend(plt: mpl.pyplot, color_map: ColorMap) -> Type[Legend]:
+def add_legend(plt: mpl.pyplot, color_map: ColorMap) -> Legend:
     """
     Add a legend that shows the mapping from unique tags to unqiue colors.
 
@@ -309,15 +307,15 @@ def main():
 
     points, x_0 = parse_entries(full_json)
 
-    fig: Type[Figure] = plt.figure()
-    ax: Type[Axes] = fig.add_subplot(111)
+    fig: Figure = plt.figure()
+    ax: Axes = fig.add_subplot(111)
 
     plot_values(ax, points)
 
     format_x_axis(ax, x_0)
     format_y_axis(ax, int(x_0), int(x_0) + 1)
 
-    figManager: [FigureManagerQT] = plt.get_current_fig_manager()
+    figManager: FigureManagerQT = plt.get_current_fig_manager()
     format_figure(figManager)
 
     color_map: ColorMap = calc_color_map(full_json)
