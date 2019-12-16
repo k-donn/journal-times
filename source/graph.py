@@ -2,6 +2,7 @@
 
 # Types
 from typing import Dict, List, Tuple, Set, Union
+from matplotlib.axis import XAxis, YAxis
 from matplotlib.axes._subplots import Axes
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5 import FigureManagerQT
@@ -11,6 +12,7 @@ from matplotlib.legend import Legend
 # Actually used
 from matplotlib.dates import (
     HOURLY, WEEKLY, DateFormatter, rrulewrapper, RRuleLocator)
+from matplotlib.ticker import FuncFormatter
 import matplotlib.colors as colors
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
@@ -145,7 +147,7 @@ def calc_color_map(full_json: Export) -> ColorMap:
         vmin=minima, vmax=maxima, clip=True)
     # Intellisense can't find any of the color-map members part of cm
     mapper: cm.ScalarMappable = cm.ScalarMappable(
-        norm=norm, cmap=cm.hsv)  # pylint: disable=no-member
+        norm=norm, cmap=cm.gist_ncar)  # pylint: disable=no-member
 
     color_map = {tag: mapper.to_rgba(index)
                  for index, tag in enumerate(avail_tags)}
@@ -225,9 +227,11 @@ def format_x_axis(ax: Axes, x_0: float) -> None:
     x_loc: RRuleLocator = RRuleLocator(x_rule)
     x_formatter: DateFormatter = DateFormatter("%m/%d/%y")
 
-    ax.get_xaxis().set_major_locator(x_loc)
-    ax.get_xaxis().set_major_formatter(x_formatter)
-    ax.get_xaxis().set_tick_params(rotation=30)
+    x_axis: XAxis = ax.get_xaxis()
+
+    x_axis.set_major_locator(x_loc)
+    x_axis.set_major_formatter(x_formatter)
+    x_axis.set_tick_params(rotation=30)
 
 
 def format_y_axis(ax: Axes, bottom: int, top: int) -> None:
@@ -249,10 +253,12 @@ def format_y_axis(ax: Axes, bottom: int, top: int) -> None:
 
     y_rule: rrulewrapper = rrulewrapper(HOURLY)
     y_loc: RRuleLocator = RRuleLocator(y_rule)
-    y_formatter: DateFormatter = DateFormatter("%H:%M:%S")
+    y_formatter: DateFormatter = DateFormatter("%-I:%M:%S %p")
 
-    ax.get_yaxis().set_major_locator(y_loc)
-    ax.get_yaxis().set_major_formatter(y_formatter)
+    y_axis: YAxis = ax.get_yaxis()
+
+    y_axis.set_major_locator(y_loc)
+    y_axis.set_major_formatter(y_formatter)
 
     # Display morning on top and midnight on bottom. This is different than what
     # we did at assigning `y_vals`
