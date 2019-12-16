@@ -243,7 +243,11 @@ def format_y_axis(ax: Type[Axes], bottom: int, top: int) -> None:
 
 def format_figure(figManager: FigureManagerQT) -> None:
     """
-    Adjust the sizing of the figure (the whole window including tool-bar).
+    Adjust the sizing of the figure (the whole window including tool-bar) to be 
+    maximized and have a window title.
+
+    figManager: `FigureManagerQT`
+        The returned wrapper around the figure
     """
     figManager.window.showMaximized()
     figManager.set_window_title("Journal Entry times")
@@ -252,6 +256,13 @@ def format_figure(figManager: FigureManagerQT) -> None:
 def format_plot(plt: mpl.pyplot, ax: Axes) -> None:
     """
     Adjust grid lines and title for the plot (the part that's not the tool-bar).
+
+    Parameters
+    ----------
+    plt: `matplotlib.pyplot`
+        The matplotlib pyplot module
+    ax: `Axes`
+        The Axes object describing the graph
     """
     plt.grid(which="both", axis="both")
 
@@ -262,6 +273,17 @@ def format_plot(plt: mpl.pyplot, ax: Axes) -> None:
 def add_legend(plt: mpl.pyplot, color_map: ColorMap) -> Type[Legend]:
     """
     Add a legend that shows the mapping from unique tags to unqiue colors.
+
+    Parameters
+    ----------
+    plt: `matplotlib.pyplot`
+        The matplotlib pyplot module
+    color_map: `dict`
+        The dictionary with unique tags and unique colors
+
+    Returns
+    -------
+    `Legend` object describing the added legend
     """
     tags: List[str] = list(color_map.keys())
 
@@ -272,6 +294,9 @@ def add_legend(plt: mpl.pyplot, color_map: ColorMap) -> Type[Legend]:
 
 
 def main():
+    """
+    Execute code needed to plot values and plot values
+    """
     mpl.use("Qt5Agg")
 
     parser = argparse.ArgumentParser(prog="python3.7 source/graph.py",
