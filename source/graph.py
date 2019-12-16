@@ -186,7 +186,17 @@ def plot_values(ax: Axes, points: List[PointColorVal]) -> List[Line2D]:
     return lines
 
 
-def format_x_axis(ax: Type[Axes], x_0) -> None:
+def format_x_axis(ax: Type[Axes], x_0: float) -> None:
+    """
+    Draw the ticks, format the labels, and adjust sizing for the day-axis.
+
+    Parameters
+    ----------
+    ax: `Axes`
+        The Axes object describing the graph
+    x_0: `float`
+        The earliest day of entry
+    """
     ax.xaxis_date()
     # Pad the x on the left five in the past and pad the right five in the future
     ax.set_xlim(left=(x_0 - 5),
@@ -203,6 +213,18 @@ def format_x_axis(ax: Type[Axes], x_0) -> None:
 
 
 def format_y_axis(ax: Type[Axes], bottom: int, top: int) -> None:
+    """
+    Draw the ticks, format the labels, and adjust sizing for the day-axis.
+
+    Parameters
+    ----------
+    ax: `Axes`
+        The Axes object describing the graph
+    bottom: `int`
+        Midnight of the earliest day
+    top: `int`
+        Dawn of the earliest day
+    """
     ax.yaxis_date()
     ax.set_ylim(bottom=bottom, top=top)
     ax.set_ylabel("Time of day", fontdict={"fontsize": 15})
@@ -220,11 +242,17 @@ def format_y_axis(ax: Type[Axes], bottom: int, top: int) -> None:
 
 
 def format_figure(figManager: FigureManagerQT) -> None:
+    """
+    Adjust the sizing of the figure (the whole window including tool-bar).
+    """
     figManager.window.showMaximized()
     figManager.set_window_title("Journal Entry times")
 
 
 def format_plot(plt: mpl.pyplot, ax: Axes) -> None:
+    """
+    Adjust grid lines and title for the plot (the part that's not the tool-bar).
+    """
     plt.grid(which="both", axis="both")
 
     ax.set_title("Journal entry date/time of day",
@@ -232,6 +260,9 @@ def format_plot(plt: mpl.pyplot, ax: Axes) -> None:
 
 
 def add_legend(plt: mpl.pyplot, color_map: ColorMap) -> Type[Legend]:
+    """
+    Add a legend that shows the mapping from unique tags to unqiue colors.
+    """
     tags: List[str] = list(color_map.keys())
 
     lines: List[Line2D] = [Line2D([], [], color=color, label=tag,
