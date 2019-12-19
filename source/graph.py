@@ -1,5 +1,4 @@
 # TODO
-# Use user-defined types in docstrings
 
 # Types
 from typing import Dict, List, Tuple, Set, Union
@@ -58,12 +57,13 @@ def extract_json(fname: str) -> Export:
 
     Parameters
     ----------
-    fname: `str` path to file
+    fname: `str`
+        path to file
 
     Returns
     -------
-
-    Nested dictionary object with Day One JSON properties
+    `Export`
+        Nested dictionary object with Day One JSON properties
     """
     with open(fname, "r") as f:
         full_json = json.load(f)
@@ -77,12 +77,12 @@ def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
 
     Parameters
     ----------
-    full_json: `dict`
-        extracted JSON file
+    full_json: `Export`
+        Nested dictionary object with Day One JSON properties
 
     Returns
     -------
-    `tuple` with a `list` and `float`
+    `Tuple[List[PointColorVal], float]`
         Represents parsed info about entries and earliest date of entry
     """
     parsed_entries: List[PointColorVal] = []
@@ -129,11 +129,12 @@ def calc_color_map(full_json: Export) -> ColorMap:
 
     Parameters
     ----------
-    full_json: `dict`
+    full_json: `Export`
+        Nested dictionary object with Day One JSON properties
 
     Returns
     -------
-    `dict` of `str` keys and `Tuple` values
+    `ColorMap`
         Each tag's respective color
     """
     entries: List[Entry] = [entry for entry in full_json["entries"]]
@@ -164,12 +165,12 @@ def find_tags(entries: List[Entry]) -> List[str]:
 
     Parameters
     ----------
-    entries: `list` of `dict`
+    entries: `List[Entry]`
         Entries property of exported JSON
 
     Returns
     -------
-    `list` of `str`
+    `List[str]`
         List of tags
 
     Notes
@@ -193,12 +194,12 @@ def plot_values(ax: Axes, points: List[PointColorVal]) -> List[Line2D]:
     ----------
     ax: `Axes`
         The Axes object describing the graph
-    points: `list` of point info
+    points: `List[PointColorVal]`
         List of dicts that represent each entry's day and time of day
 
     Returns
     -------
-    `list` of `Line2D` objects
+    `List[Line2D]`
         The returned objects from the matplotlib plotting function
     """
     lines: List[Line2D] = [ax.plot_date(point["x_value"], point["y_value"],
@@ -303,12 +304,13 @@ def add_legend(plt: mpl.pyplot, color_map: ColorMap) -> Legend:
     ----------
     plt: `matplotlib.pyplot`
         The matplotlib pyplot module
-    color_map: `dict`
+    color_map: `ColorMap`
         The dictionary with unique tags and unique colors
 
     Returns
     -------
-    `Legend` object describing the added legend
+    `Legend`
+        Object describing the added legend
     """
     tags: List[str] = list(color_map.keys())
 
@@ -320,7 +322,7 @@ def add_legend(plt: mpl.pyplot, color_map: ColorMap) -> Legend:
 
 def main():
     """
-    Execute code needed to plot values and plot values
+    Parse the command line arguments, then make calls to graphing/processing functions.
     """
     mpl.use("Qt5Agg")
 
