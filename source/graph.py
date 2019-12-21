@@ -1,27 +1,25 @@
 # TODO
 
-# Types
-from typing import Dict, List, Tuple, Set, Union
-from matplotlib.axis import XAxis, YAxis
-from matplotlib.axes._subplots import Axes
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt5 import FigureManagerQT
-from matplotlib.lines import Line2D
-from matplotlib.legend import Legend
-
-# Actually used
-from matplotlib.dates import (
-    HOURLY, WEEKLY, DateFormatter, rrulewrapper, RRuleLocator)
-from matplotlib.ticker import FuncFormatter
-import matplotlib.colors as colors
-import matplotlib.cm as cm
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import numpy as np
-import datetime
-import pytz
-import json
 import argparse
+import datetime
+import json
+from typing import Dict, List, Set, Tuple, Union
+
+import matplotlib as mpl
+import matplotlib.cm as cm
+import matplotlib.colors as colors
+import matplotlib.pyplot as plt
+import numpy as np
+import pytz
+from matplotlib.axes._subplots import Axes
+from matplotlib.axis import XAxis, YAxis
+from matplotlib.backends.backend_qt5 import FigureManagerQT
+from matplotlib.dates import (HOURLY, WEEKLY, DateFormatter, RRuleLocator,
+                              rrulewrapper)
+from matplotlib.figure import Figure
+from matplotlib.legend import Legend
+from matplotlib.lines import Line2D
+from matplotlib.ticker import FuncFormatter
 
 # Mapping of tag names to unique colors
 ColorMap = Dict[str, Tuple[float, float, float, float]]
