@@ -200,8 +200,12 @@ def plot_values(ax: Axes, points: List[PointColorVal]) -> List[Line2D]:
     `List[Line2D]`
         The returned objects from the matplotlib plotting function
     """
-    lines: List[Line2D] = [ax.plot_date(point["x_value"], point["y_value"],
-                                        fmt="o", label=point["color"], color=point["color"]) for point in points]
+    lines: List[Line2D] = [
+        ax.plot_date(
+            point["x_value"],
+            point["y_value"],
+            fmt="o", label=point["color"],
+            color=point["color"]) for point in points]
 
     return lines
 
@@ -320,12 +324,13 @@ def add_legend(plt: mpl.pyplot, color_map: ColorMap) -> Legend:
 
 def main():
     """
-    Parse the command line arguments, then make calls to graphing/processing functions.
+    Display a graph of journal entries from Day One JSON.
     """
     mpl.use("Qt5Agg")
 
-    parser = argparse.ArgumentParser(prog="python3.7 source/graph.py",
-                                     description="Display a graph of journal entries from Day One JSON")
+    parser = argparse.ArgumentParser(
+        prog="python3.7 source/graph.py",
+        description="Display a graph of journal entries from Day One JSON")
     parser.add_argument("file", help="Path to exported Day One JSON file")
 
     args = parser.parse_args()
