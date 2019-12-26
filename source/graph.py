@@ -48,6 +48,7 @@ MetadataProps = Dict[str, str]
 # structure of an exported journal
 Export = Dict[str, Union[MetadataProps, List[Entry]]]
 
+plt.style.use("fast")
 
 def extract_json(fname: str) -> Export:
     """
