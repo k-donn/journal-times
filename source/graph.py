@@ -1,6 +1,5 @@
 # TODO
-# Make input-file non-dependant on sorting order
-# Update README with dummy-data instructions
+# Make input-file independant of sorting order
 
 import argparse
 import datetime
