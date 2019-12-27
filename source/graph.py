@@ -1,4 +1,6 @@
 # TODO
+# Make input-file non-dependant on sorting order
+# Update README with dummy-data instructions
 
 import argparse
 import datetime
@@ -49,6 +51,7 @@ MetadataProps = Dict[str, str]
 Export = Dict[str, Union[MetadataProps, List[Entry]]]
 
 plt.style.use("fast")
+
 
 def extract_json(fname: str) -> Export:
     """
