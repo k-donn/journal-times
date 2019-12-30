@@ -1,20 +1,26 @@
+"""
+usage:
+python3.7 data/gen_dummy.py
+description:
+Generate dummy data to see how graphing works
+"""
 import json
 from datetime import datetime, timedelta
-from pprint import PrettyPrinter
 from random import randint
 
 from random_word import RandomWords
 
 
 def generate_entries():
-    r = RandomWords()
+    """Generate tags and dates for entries"""
+    rand_words = RandomWords()
     res = []
     curr_day = datetime.now()
-    avail_tags = r.get_random_words(limit=randint(5, 10))
-    for i in range(100):
+    avail_tags = rand_words.get_random_words(limit=randint(5, 10))
+    for _i in range(100):
         # generate between two to five entries every day
         curr_day -= timedelta(days=1)
-        for i in range(randint(2, 5)):
+        for _j in range(randint(2, 5)):
             entry = {}
 
             entry["creationDate"] = curr_day.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -30,16 +36,16 @@ def generate_entries():
 
 
 def write_json(file_data):
+    """Write the entries to the JSON file"""
     with open("data/Dummy.json", "w") as dummy:
         entries_str = json.dumps(file_data, indent=4, sort_keys=True)
         dummy.write(entries_str)
 
 
 def main():
-    # pp = PrettyPrinter(indent=4)
+    """Execute all executable code"""
     entries = generate_entries()
     file_data = {"metadata": {"version": 1.0}, "entries": entries}
-    # pp.pprint(file_data)
     write_json(file_data)
 
 

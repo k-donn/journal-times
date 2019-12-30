@@ -1,16 +1,21 @@
+"""
+usage:
+python3.7 source/graph.py
+description:
+Display a graph of journal entries from Day One JSON
+"""
 # TODO
 # Make input-file independant of sorting order
 
 import argparse
 import datetime
 import json
-from typing import Dict, List, Set, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
-import numpy as np
 import pytz
 from matplotlib.axes._subplots import Axes
 from matplotlib.axis import XAxis, YAxis
@@ -20,7 +25,6 @@ from matplotlib.dates import (HOURLY, WEEKLY, DateFormatter, RRuleLocator,
 from matplotlib.figure import Figure
 from matplotlib.legend import Legend
 from matplotlib.lines import Line2D
-from matplotlib.ticker import FuncFormatter
 
 # Mapping of tag names to unique colors
 ColorMap = Dict[str, Tuple[float, float, float, float]]
@@ -66,8 +70,8 @@ def extract_json(fname: str) -> Export:
     `Export`
         Nested dictionary object with Day One JSON properties
     """
-    with open(fname, "r") as f:
-        full_json = json.load(f)
+    with open(fname, "r") as file:
+        full_json = json.load(file)
     return full_json
 
 
@@ -187,13 +191,13 @@ def find_tags(entries: List[Entry]) -> List[str]:
     return sorted(list(set(avail_tags)))
 
 
-def plot_values(ax: Axes, points: List[PointColorVal]) -> List[Line2D]:
+def plot_values(axes: Axes, points: List[PointColorVal]) -> List[Line2D]:
     """
     Plot points representing day v. time of day
 
     Parameters
     ----------
-    ax: `Axes`
+    axes: `Axes`
         The Axes object describing the graph
     points: `List[PointColorVal]`
         List of dicts that represent each entry's day and time of day
@@ -204,7 +208,7 @@ def plot_values(ax: Axes, points: List[PointColorVal]) -> List[Line2D]:
         The returned objects from the matplotlib plotting function
     """
     lines: List[Line2D] = [
-        ax.plot_date(
+        axes.plot_date(
             point["x_value"],
             point["y_value"],
             fmt="o", label=point["color"],
@@ -213,101 +217,101 @@ def plot_values(ax: Axes, points: List[PointColorVal]) -> List[Line2D]:
     return lines
 
 
-def format_x_axis(ax: Axes, x_0: float) -> None:
+def format_x_axis(axes: Axes, x_0: float) -> None:
     """
     Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
     Parameters
     ----------
-    ax: `Axes`
+    axes: `Axes`
         The Axes object describing the graph
     x_0: `float`
         The earliest day of entry
     """
-    ax.xaxis_date()
+    axes.xaxis_date()
     # Pad the x on the left five in the past and pad the right five in the future
-    ax.set_xlim(left=(x_0 - 5),
-                right=(mpl.dates.date2num(datetime.datetime.now().date()) + 5))
-    ax.set_xlabel("Date", fontdict={"fontsize": 15})
+    axes.set_xlim(left=(x_0 - 5),
+                  right=(mpl.dates.date2num(datetime.datetime.now().date()) + 5))
+    axes.set_xlabel("Date", fontdict={"fontsize": 15})
 
     x_rule: rrulewrapper = rrulewrapper(WEEKLY)
     x_loc: RRuleLocator = RRuleLocator(x_rule)
     x_formatter: DateFormatter = DateFormatter("%m/%d/%y")
 
-    x_axis: XAxis = ax.get_xaxis()
+    x_axis: XAxis = axes.get_xaxis()
 
     x_axis.set_major_locator(x_loc)
     x_axis.set_major_formatter(x_formatter)
     x_axis.set_tick_params(rotation=30)
 
 
-def format_y_axis(ax: Axes, bottom: int, top: int) -> None:
+def format_y_axis(axes: Axes, bottom: int, top: int) -> None:
     """
     Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
     Parameters
     ----------
-    ax: `Axes`
+    axes: `Axes`
         The Axes object describing the graph
     bottom: `int`
         Midnight of the earliest day
     top: `int`
         Dawn of the earliest day
     """
-    ax.yaxis_date()
-    ax.set_ylim(bottom=bottom, top=top)
-    ax.set_ylabel("Time of day", fontdict={"fontsize": 15})
+    axes.yaxis_date()
+    axes.set_ylim(bottom=bottom, top=top)
+    axes.set_ylabel("Time of day", fontdict={"fontsize": 15})
 
     y_rule: rrulewrapper = rrulewrapper(HOURLY)
     y_loc: RRuleLocator = RRuleLocator(y_rule)
     y_formatter: DateFormatter = DateFormatter("%-I:%M:%S %p")
 
-    y_axis: YAxis = ax.get_yaxis()
+    y_axis: YAxis = axes.get_yaxis()
 
     y_axis.set_major_locator(y_loc)
     y_axis.set_major_formatter(y_formatter)
 
     # Display morning on top and midnight on bottom. This is different than what
     # we did at assigning `y_vals`
-    ax.invert_yaxis()
+    axes.invert_yaxis()
 
 
-def format_figure(figManager: FigureManagerQT) -> None:
+def format_figure(fig_manager: FigureManagerQT) -> None:
     """
-    Adjust the sizing of the figure (the whole window including tool-bar) to be 
+    Adjust the sizing of the figure (the whole window including tool-bar) to be
     maximized and have a window title.
 
-    figManager: `FigureManagerQT`
+    fig_manager: `FigureManagerQT`
         The returned wrapper around the figure
     """
-    figManager.window.showMaximized()
-    figManager.set_window_title("Journal Entry times")
+    fig_manager.window.showMaximized()
+    fig_manager.set_window_title("Journal Entry times")
 
 
-def format_plot(plt: mpl.pyplot, ax: Axes) -> None:
+def format_plot(plot: mpl.pyplot, axes: Axes) -> None:
     """
     Adjust grid lines and title for the plot (the part that's not the tool-bar).
 
     Parameters
     ----------
-    plt: `matplotlib.pyplot`
+    plot: `matplotlib.pyplot`
         The matplotlib pyplot module
-    ax: `Axes`
+    axes: `Axes`
         The Axes object describing the graph
     """
-    plt.grid(which="both", axis="both")
+    plot.grid(which="both", axis="both")
 
-    ax.set_title("Journal entry date/time of day",
-                 fontdict={"fontsize": 18}, pad=25)
+    axes.set_title("Journal entry date/time of day",
+                   fontdict={"fontsize": 18}, pad=25)
 
 
-def add_legend(plt: mpl.pyplot, color_map: ColorMap) -> Legend:
+def add_legend(plot: mpl.pyplot, color_map: ColorMap) -> Legend:
     """
     Add a legend that shows the mapping from unique tags to unqiue colors.
 
     Parameters
     ----------
-    plt: `matplotlib.pyplot`
+    plot: `matplotlib.pyplot`
         The matplotlib pyplot module
     color_map: `ColorMap`
         The dictionary with unique tags and unique colors
@@ -322,7 +326,7 @@ def add_legend(plt: mpl.pyplot, color_map: ColorMap) -> Legend:
     lines: List[Line2D] = [Line2D([], [], color=color, label=tag,
                                   marker="o", linestyle="none") for tag, color in color_map.items()]
 
-    return plt.legend(lines, tags)
+    return plot.legend(lines, tags)
 
 
 def main():
@@ -343,19 +347,19 @@ def main():
     points, x_0 = parse_entries(full_json)
 
     fig: Figure = plt.figure()
-    ax: Axes = fig.add_subplot(111)
+    axes: Axes = fig.add_subplot(111)
 
-    plot_values(ax, points)
+    plot_values(axes, points)
 
-    format_x_axis(ax, x_0)
-    format_y_axis(ax, int(x_0), int(x_0) + 1)
+    format_x_axis(axes, x_0)
+    format_y_axis(axes, int(x_0), int(x_0) + 1)
 
-    figManager: FigureManagerQT = plt.get_current_fig_manager()
-    format_figure(figManager)
+    fig_manager: FigureManagerQT = plt.get_current_fig_manager()
+    format_figure(fig_manager)
 
     color_map: ColorMap = calc_color_map(full_json)
     add_legend(plt, color_map)
-    format_plot(plt, ax)
+    format_plot(plt, axes)
 
     plt.show()
 
