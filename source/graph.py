@@ -284,7 +284,6 @@ def format_figure(fig_manager: FigureManagerQT) -> None:
     fig_manager: `FigureManagerQT`
         The returned wrapper around the figure
     """
-    fig_manager.window.showMaximized()
     fig_manager.set_window_title("Journal Entry times")
 
 
@@ -333,7 +332,6 @@ def main():
     """
     Display a graph of journal entries from Day One JSON.
     """
-    mpl.use("Qt5Agg")
 
     parser = argparse.ArgumentParser(
         prog="python3.7 source/graph.py",
@@ -346,7 +344,7 @@ def main():
 
     points, x_0 = parse_entries(full_json)
 
-    fig: Figure = plt.figure()
+    fig: Figure = plt.figure(figsize=(16, 9), dpi=120)
     axes: Axes = fig.add_subplot(111)
 
     plot_values(axes, points)
@@ -361,7 +359,9 @@ def main():
     add_legend(plt, color_map)
     format_plot(plt, axes)
 
-    plt.show()
+    fig.savefig("figures/journal-entry-times.png")
+
+    plt.close()
 
 
 if __name__ == "__main__":
