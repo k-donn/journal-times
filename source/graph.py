@@ -6,6 +6,7 @@ Display a graph of journal entries from Day One JSON
 """
 # TODO
 # Make input-file independant of sorting order
+# Add debug option to show figure
 
 import argparse
 import datetime
@@ -57,8 +58,7 @@ plt.style.use("fast")
 
 
 def extract_json(fname: str) -> Export:
-    """
-    Extract JSON from supplied Day One journal export.
+    """Extract JSON from supplied Day One journal export.
 
     Parameters
     ----------
@@ -69,6 +69,7 @@ def extract_json(fname: str) -> Export:
     -------
     `Export`
         Nested dictionary object with Day One JSON properties
+
     """
     with open(fname, "r") as file:
         full_json = json.load(file)
@@ -76,9 +77,8 @@ def extract_json(fname: str) -> Export:
 
 
 def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
-    """
-    Calculate datetime info, primary tag, and respective color for
-    each entry in the Day One export.
+    """Calculate datetime info, primary tag, and respective color for each entry
+    in the Day One export.
 
     Parameters
     ----------
@@ -89,6 +89,7 @@ def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
     -------
     `Tuple[List[PointColorVal], float]`
         Represents parsed info about entries and earliest date of entry
+
     """
     parsed_entries: List[PointColorVal] = []
     color_map: ColorMap = calc_color_map(full_json)
@@ -111,8 +112,7 @@ def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
 
 
 def str_to_date(date_str: str) -> datetime.datetime:
-    """
-    Convert a string in Day One format to a datetime object.
+    """Convert a string in Day One format to a datetime object.
 
     Parameters
     ----------
@@ -123,14 +123,14 @@ def str_to_date(date_str: str) -> datetime.datetime:
     -------
     `datetime.datetime`
         Parsed datetime object
+
     """
     return datetime.datetime.strptime(
         date_str, "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York"))
 
 
 def calc_color_map(full_json: Export) -> ColorMap:
-    """
-    Create a dictionary to map unique tags to unique colors.
+    """Create a dictionary to map unique tags to unique colors.
 
     Parameters
     ----------
@@ -141,8 +141,9 @@ def calc_color_map(full_json: Export) -> ColorMap:
     -------
     `ColorMap`
         Each tag's respective color
+
     """
-    entries: List[Entry] = [entry for entry in full_json["entries"]]
+    entries: List[Entry] = full_json["entries"]
     avail_tags: List[str] = find_tags(entries)
 
     color_map: ColorMap = {}
@@ -165,8 +166,8 @@ def calc_color_map(full_json: Export) -> ColorMap:
 
 
 def find_tags(entries: List[Entry]) -> List[str]:
-    """
-    Find all unique and primary, that which is first in the `tags` property, in entries.
+    """Find all unique and primary, that which is first in the `tags` property,
+    in entries.
 
     Parameters
     ----------
@@ -182,6 +183,7 @@ def find_tags(entries: List[Entry]) -> List[str]:
     -----
     The returned list is sorted in order to get the same mapping every single time given
     the same exported JSON
+
     """
     avail_tags: List[str] = []
 
@@ -192,8 +194,7 @@ def find_tags(entries: List[Entry]) -> List[str]:
 
 
 def plot_values(axes: Axes, points: List[PointColorVal]) -> List[Line2D]:
-    """
-    Plot points representing day v. time of day
+    """Plot points representing day v. time of day.
 
     Parameters
     ----------
@@ -206,6 +207,7 @@ def plot_values(axes: Axes, points: List[PointColorVal]) -> List[Line2D]:
     -------
     `List[Line2D]`
         The returned objects from the matplotlib plotting function
+
     """
     lines: List[Line2D] = [
         axes.plot_date(
@@ -218,8 +220,7 @@ def plot_values(axes: Axes, points: List[PointColorVal]) -> List[Line2D]:
 
 
 def format_x_axis(axes: Axes, x_0: float) -> None:
-    """
-    Draw the ticks, format the labels, and adjust sizing for the day-axis.
+    """Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
     Parameters
     ----------
@@ -227,6 +228,7 @@ def format_x_axis(axes: Axes, x_0: float) -> None:
         The Axes object describing the graph
     x_0: `float`
         The earliest day of entry
+
     """
     axes.xaxis_date()
     # Pad the x on the left five in the past and pad the right five in the future
@@ -246,8 +248,7 @@ def format_x_axis(axes: Axes, x_0: float) -> None:
 
 
 def format_y_axis(axes: Axes, bottom: int, top: int) -> None:
-    """
-    Draw the ticks, format the labels, and adjust sizing for the day-axis.
+    """Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
     Parameters
     ----------
@@ -257,6 +258,7 @@ def format_y_axis(axes: Axes, bottom: int, top: int) -> None:
         Midnight of the earliest day
     top: `int`
         Dawn of the earliest day
+
     """
     axes.yaxis_date()
     axes.set_ylim(bottom=bottom, top=top)
@@ -277,41 +279,37 @@ def format_y_axis(axes: Axes, bottom: int, top: int) -> None:
 
 
 def format_figure(fig_manager: FigureManagerQT) -> None:
-    """
-    Adjust the sizing of the figure (the whole window including tool-bar) to be
-    maximized and have a window title.
+    """Adjust the sizing of the figure (the whole window including tool-bar) to
+    be maximized and have a window title.
 
     fig_manager: `FigureManagerQT`
         The returned wrapper around the figure
+
     """
     fig_manager.set_window_title("Journal Entry times")
 
 
-def format_plot(plot: mpl.pyplot, axes: Axes) -> None:
-    """
-    Adjust grid lines and title for the plot (the part that's not the tool-bar).
+def format_axes(axes: Axes) -> None:
+    """Adjust grid lines and title for the plot (the part that's not the tool-
+    bar).
 
     Parameters
     ----------
-    plot: `matplotlib.pyplot`
-        The matplotlib pyplot module
     axes: `Axes`
         The Axes object describing the graph
+
     """
-    plot.grid(which="both", axis="both")
+    plt.grid(which="both", axis="both")
 
     axes.set_title("Journal entry date/time of day",
                    fontdict={"fontsize": 18}, pad=25)
 
 
-def add_legend(plot: mpl.pyplot, color_map: ColorMap) -> Legend:
-    """
-    Add a legend that shows the mapping from unique tags to unqiue colors.
+def add_legend(color_map: ColorMap) -> Legend:
+    """Add a legend that shows the mapping from unique tags to unqiue colors.
 
     Parameters
     ----------
-    plot: `matplotlib.pyplot`
-        The matplotlib pyplot module
     color_map: `ColorMap`
         The dictionary with unique tags and unique colors
 
@@ -319,19 +317,18 @@ def add_legend(plot: mpl.pyplot, color_map: ColorMap) -> Legend:
     -------
     `Legend`
         Object describing the added legend
+
     """
     tags: List[str] = list(color_map.keys())
 
     lines: List[Line2D] = [Line2D([], [], color=color, label=tag,
                                   marker="o", linestyle="none") for tag, color in color_map.items()]
 
-    return plot.legend(lines, tags)
+    return plt.legend(lines, tags)
 
 
 def main():
-    """
-    Display a graph of journal entries from Day One JSON.
-    """
+    """Display a graph of journal entries from Day One JSON."""
 
     parser = argparse.ArgumentParser(
         prog="python3.7 source/graph.py",
@@ -356,12 +353,10 @@ def main():
     format_figure(fig_manager)
 
     color_map: ColorMap = calc_color_map(full_json)
-    add_legend(plt, color_map)
-    format_plot(plt, axes)
+    add_legend(color_map)
+    format_axes(axes)
 
     fig.savefig("figures/journal-entry-times.png")
-
-    plt.close()
 
 
 if __name__ == "__main__":
