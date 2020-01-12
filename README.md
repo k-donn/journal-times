@@ -11,18 +11,15 @@ To run from the root dir:
 -   From the root of the folder,
 
 ```
-python3 ./source/graph.py ./data/<JOURNAL>.json
+python3 ./source/graph.py --file ./data/<JOURNAL>.json
 ```
-
--   If there are any errors, they are most likely backend related.
--   Adjust code to use whatever backend you have on your system (project is Qt5Agg)
 
 ## Generate Dummy Data
 
 -   From the root of the foler,
 
 ```
-python3 ./data/gen-dummy.py
+python3 ./data/gen_dummy.py
 ```
 
 -   Now, just pass in the new ./data/Dummy.json file to the program
