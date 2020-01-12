@@ -5,12 +5,13 @@ description:
 Display a graph of journal entries from Day One JSON
 """
 # TODO
-# Make input-file independant of sorting order
 # Add debug option to show figure
+# Add NoReturn type
 
 import argparse
 import datetime
 import json
+from operator import itemgetter
 from typing import Dict, List, Tuple, Union
 
 import matplotlib as mpl
@@ -21,8 +22,7 @@ import pytz
 from matplotlib.axes._subplots import Axes
 from matplotlib.axis import XAxis, YAxis
 from matplotlib.backends.backend_qt5 import FigureManagerQT
-from matplotlib.dates import (HOURLY, WEEKLY, DateFormatter, RRuleLocator,
-                              rrulewrapper)
+from matplotlib.dates import (HourLocator, DayLocator, DateFormatter)
 from matplotlib.figure import Figure
 from matplotlib.legend import Legend
 from matplotlib.lines import Line2D
@@ -53,8 +53,6 @@ MetadataProps = Dict[str, str]
 
 # structure of an exported journal
 Export = Dict[str, Union[MetadataProps, List[Entry]]]
-
-plt.style.use("fast")
 
 
 def extract_json(fname: str) -> Export:
@@ -93,8 +91,11 @@ def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
     """
     parsed_entries: List[PointColorVal] = []
     color_map: ColorMap = calc_color_map(full_json)
-    x_0: float = mpl.dates.date2num(str_to_date(
-        full_json["entries"][0]["creationDate"]))
+
+    earliest_entry: Entry = min(
+        full_json["entries"], key=itemgetter("creationDate"))
+    x_0: float = mpl.dates.date2num(str_to_date(earliest_entry["creationDate"]))
+
     for entry in full_json["entries"]:
         entry_info: PointColorVal = {}
         date = str_to_date(entry["creationDate"])
@@ -235,9 +236,9 @@ def format_x_axis(axes: Axes, x_0: float) -> None:
     axes.set_xlim(left=(x_0 - 5),
                   right=(mpl.dates.date2num(datetime.datetime.now().date()) + 5))
     axes.set_xlabel("Date", fontdict={"fontsize": 15})
+    axes.grid(axis="x")
 
-    x_rule: rrulewrapper = rrulewrapper(WEEKLY)
-    x_loc: RRuleLocator = RRuleLocator(x_rule)
+    x_loc: DayLocator = DayLocator(interval=10)
     x_formatter: DateFormatter = DateFormatter("%m/%d/%y")
 
     x_axis: XAxis = axes.get_xaxis()
@@ -263,9 +264,9 @@ def format_y_axis(axes: Axes, bottom: int, top: int) -> None:
     axes.yaxis_date()
     axes.set_ylim(bottom=bottom, top=top)
     axes.set_ylabel("Time of day", fontdict={"fontsize": 15})
+    axes.grid(axis="y")
 
-    y_rule: rrulewrapper = rrulewrapper(HOURLY)
-    y_loc: RRuleLocator = RRuleLocator(y_rule)
+    y_loc: HourLocator = HourLocator(interval=2)
     y_formatter: DateFormatter = DateFormatter("%-I:%M:%S %p")
 
     y_axis: YAxis = axes.get_yaxis()
@@ -302,7 +303,7 @@ def format_axes(axes: Axes) -> None:
     plt.grid(which="both", axis="both")
 
     axes.set_title("Journal entry date/time of day",
-                   fontdict={"fontsize": 18}, pad=25)
+                   fontdict={"fontsize": 18, "family": "Poppins"}, pad=25)
 
 
 def add_legend(color_map: ColorMap) -> Legend:
@@ -324,7 +325,12 @@ def add_legend(color_map: ColorMap) -> Legend:
     lines: List[Line2D] = [Line2D([], [], color=color, label=tag,
                                   marker="o", linestyle="none") for tag, color in color_map.items()]
 
-    return plt.legend(lines, tags)
+    return plt.legend(lines, tags, loc=7, bbox_to_anchor=(1.1, 0.5))
+
+
+def format_plt():
+    """Set all top-level attributes of the plot"""
+    plt.style.use("ggplot")
 
 
 def main():
@@ -333,7 +339,10 @@ def main():
     parser = argparse.ArgumentParser(
         prog="python3.7 source/graph.py",
         description="Display a graph of journal entries from Day One JSON")
-    parser.add_argument("file", help="Path to exported Day One JSON file")
+    parser.add_argument("-f", "--file", required=True,
+                        help="Path to exported Day One JSON file")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Show the plot instead of writing to file")
 
     args = parser.parse_args()
 
@@ -342,6 +351,9 @@ def main():
     points, x_0 = parse_entries(full_json)
 
     fig: Figure = plt.figure(figsize=(16, 9), dpi=120)
+
+    format_plt()
+
     axes: Axes = fig.add_subplot(111)
 
     plot_values(axes, points)
@@ -356,7 +368,10 @@ def main():
     add_legend(color_map)
     format_axes(axes)
 
-    fig.savefig("figures/journal-entry-times.png")
+    if args.debug:
+        plt.show()
+    else:
+        fig.savefig("figures/journal-entry-times.png")
 
 
 if __name__ == "__main__":

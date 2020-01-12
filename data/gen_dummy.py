@@ -31,7 +31,6 @@ def generate_entries():
             entry["tags"] = []
             entry["tags"].append(avail_tags[randint(0, len(avail_tags) - 1)])
             res.append(entry)
-    res.reverse()
     return res
 
 
@@ -43,7 +42,7 @@ def write_json(file_data):
 
 
 def main():
-    """Execute all executable code"""
+    """Generate dummy data"""
     entries = generate_entries()
     file_data = {"metadata": {"version": 1.0}, "entries": entries}
     write_json(file_data)
