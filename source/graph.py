@@ -5,7 +5,6 @@ description:
 Display a graph of journal entries from Day One JSON
 """
 # TODO
-# Add debug option to show figure
 # Add NoReturn type
 
 import argparse
@@ -126,8 +125,11 @@ def str_to_date(date_str: str) -> datetime.datetime:
         Parsed datetime object
 
     """
-    return datetime.datetime.strptime(
-        date_str, "%Y-%m-%dT%H:%M:%SZ").astimezone(pytz.timezone("America/New_York"))
+    eastern_timezone: pytz.tzfile.DstTzInfo = pytz.timezone("America/New_York")
+    correction: datetime.timedelta = datetime.timedelta(hours=2)
+    final: datetime.datetime = datetime.datetime.strptime(
+        date_str, "%Y-%m-%dT%H:%M:%SZ").astimezone(eastern_timezone) - correction
+    return final
 
 
 def calc_color_map(full_json: Export) -> ColorMap:
@@ -325,7 +327,7 @@ def add_legend(color_map: ColorMap) -> Legend:
     lines: List[Line2D] = [Line2D([], [], color=color, label=tag,
                                   marker="o", linestyle="none") for tag, color in color_map.items()]
 
-    return plt.legend(lines, tags, loc=7, bbox_to_anchor=(1.1, 0.5))
+    return plt.legend(lines, tags, loc=7, bbox_to_anchor=(1.12, 0.5))
 
 
 def format_plt():
