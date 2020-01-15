@@ -11,7 +11,7 @@ import argparse
 import datetime
 import json
 from operator import itemgetter
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, NoReturn
 
 import matplotlib as mpl
 import matplotlib.cm as cm
@@ -222,7 +222,7 @@ def plot_values(axes: Axes, points: List[PointColorVal]) -> List[Line2D]:
     return lines
 
 
-def format_x_axis(axes: Axes, x_0: float) -> None:
+def format_x_axis(axes: Axes, x_0: float) -> NoReturn:
     """Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
     Parameters
@@ -250,7 +250,7 @@ def format_x_axis(axes: Axes, x_0: float) -> None:
     x_axis.set_tick_params(rotation=30)
 
 
-def format_y_axis(axes: Axes, bottom: int, top: int) -> None:
+def format_y_axis(axes: Axes, bottom: int, top: int) -> NoReturn:
     """Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
     Parameters
@@ -281,7 +281,7 @@ def format_y_axis(axes: Axes, bottom: int, top: int) -> None:
     axes.invert_yaxis()
 
 
-def format_figure(fig_manager: FigureManagerQT) -> None:
+def format_figure(fig_manager: FigureManagerQT) -> NoReturn:
     """Adjust the sizing of the figure (the whole window including tool-bar) to
     be maximized and have a window title.
 
@@ -292,7 +292,7 @@ def format_figure(fig_manager: FigureManagerQT) -> None:
     fig_manager.set_window_title("Journal Entry times")
 
 
-def format_axes(axes: Axes) -> None:
+def format_axes(axes: Axes) -> NoReturn:
     """Adjust grid lines and title for the plot (the part that's not the tool-
     bar).
 
@@ -330,12 +330,12 @@ def add_legend(color_map: ColorMap) -> Legend:
     return plt.legend(lines, tags, loc=7, bbox_to_anchor=(1.12, 0.5))
 
 
-def format_plt():
+def format_plt() -> NoReturn:
     """Set all top-level attributes of the plot"""
     plt.style.use("ggplot")
 
 
-def main():
+def main() -> NoReturn:
     """Display a graph of journal entries from Day One JSON."""
 
     parser = argparse.ArgumentParser(
