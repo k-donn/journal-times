@@ -5,7 +5,10 @@ description:
 Display a graph of journal entries from Day One JSON
 """
 # TODO
-# Add NoReturn type
+# For hist:
+# - Add labels/title
+# - Extract types
+# - Docstrings
 
 import argparse
 import datetime
@@ -196,7 +199,7 @@ def find_tags(entries: List[Entry]) -> List[str]:
     return sorted(list(set(avail_tags)))
 
 
-def plot_values(axes: Axes, points: List[PointColorVal]) -> List[Line2D]:
+def plot_dot_plot(axes: Axes, points: List[PointColorVal]) -> List[Line2D]:
     """Plot points representing day v. time of day.
 
     Parameters
@@ -222,7 +225,7 @@ def plot_values(axes: Axes, points: List[PointColorVal]) -> List[Line2D]:
     return lines
 
 
-def format_x_axis(axes: Axes, x_0: float) -> NoReturn:
+def format_dot_x_axis(axes: Axes, x_0: float) -> NoReturn:
     """Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
     Parameters
@@ -250,7 +253,7 @@ def format_x_axis(axes: Axes, x_0: float) -> NoReturn:
     x_axis.set_tick_params(rotation=30)
 
 
-def format_y_axis(axes: Axes, bottom: int, top: int) -> NoReturn:
+def format_dot_y_axis(axes: Axes, bottom: int, top: int) -> NoReturn:
     """Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
     Parameters
@@ -269,7 +272,7 @@ def format_y_axis(axes: Axes, bottom: int, top: int) -> NoReturn:
     axes.grid(axis="y")
 
     y_loc: HourLocator = HourLocator(interval=2)
-    y_formatter: DateFormatter = DateFormatter("%-I:%M:%S %p")
+    y_formatter: DateFormatter = DateFormatter("%-I:%M %p")
 
     y_axis: YAxis = axes.get_yaxis()
 
@@ -292,7 +295,7 @@ def format_figure(fig_manager: FigureManagerQT) -> NoReturn:
     fig_manager.set_window_title("Journal Entry times")
 
 
-def format_axes(axes: Axes) -> NoReturn:
+def format_dot_axes(axes: Axes) -> NoReturn:
     """Adjust grid lines and title for the plot (the part that's not the tool-
     bar).
 
@@ -302,17 +305,19 @@ def format_axes(axes: Axes) -> NoReturn:
         The Axes object describing the graph
 
     """
-    plt.grid(which="both", axis="both")
+    axes.grid(which="both", axis="both")
 
     axes.set_title("Journal entry date/time of day",
                    fontdict={"fontsize": 18, "family": "Poppins"}, pad=25)
 
 
-def add_legend(color_map: ColorMap) -> Legend:
+def add_dot_legend(axes: Axes, color_map: ColorMap) -> Legend:
     """Add a legend that shows the mapping from unique tags to unqiue colors.
 
     Parameters
     ----------
+    axes: `Axes`
+        The Axes object describing the graph
     color_map: `ColorMap`
         The dictionary with unique tags and unique colors
 
@@ -326,13 +331,45 @@ def add_legend(color_map: ColorMap) -> Legend:
 
     lines: List[Line2D] = [Line2D([], [], color=color, label=tag,
                                   marker="o", linestyle="none") for tag, color in color_map.items()]
-
-    return plt.legend(lines, tags, loc=7, bbox_to_anchor=(1.12, 0.5))
+    return axes.legend(lines, tags, loc=7, bbox_to_anchor=(1.12, 0.5))
 
 
 def format_plt() -> NoReturn:
     """Set all top-level attributes of the plot"""
     plt.style.use("ggplot")
+
+
+def gen_hour_histogram_data(points: List[PointColorVal], x_0: int):
+    freq: Dict[int, int] = {}
+    day = mpl.dates.num2date(x_0)
+    delta = datetime.timedelta(hours=1)
+    for i in range(1, 25):
+        freq[i] = 0
+    for point in points:
+        date_obj = mpl.dates.num2date(point["y_value"])
+        freq[date_obj.hour + 1] += 1
+    res = {}
+    for hour, length in freq.items():
+        res[mpl.dates.date2num(day + (delta * hour))] = length
+
+    return res
+
+
+def plot_histogram(axes: Axes, hour_data: Dict[int, int]):
+    axes.bar(list(hour_data.keys()), list(hour_data.values()), width=0.025)
+    axes.xaxis_date()
+
+
+def format_hist_x_axis(axes: Axes, left: int, right: int):
+    axes.set_xlim(left=left, right=right)
+
+    x_loc: HourLocator = HourLocator(interval=1)
+    x_formatter: DateFormatter = DateFormatter("%-I:%M %p")
+
+    x_axis: YAxis = axes.get_xaxis()
+
+    x_axis.set_major_locator(x_loc)
+    x_axis.set_major_formatter(x_formatter)
 
 
 def main() -> NoReturn:
@@ -350,30 +387,41 @@ def main() -> NoReturn:
 
     full_json: Export = extract_json(args.file)
 
-    points, x_0 = parse_entries(full_json)
+    dots, x_0 = parse_entries(full_json)
 
-    fig: Figure = plt.figure(figsize=(16, 9), dpi=120)
+    histogram_data = gen_hour_histogram_data(dots, int(x_0))
+
+    dot_plot: Figure = plt.figure(figsize=(16, 9), dpi=120)
+    histogram: Figure = plt.figure(figsize=(16, 9), dpi=120)
 
     format_plt()
 
-    axes: Axes = fig.add_subplot(111)
+    hist_axes: Axes = histogram.add_subplot(111)
+    axes: Axes = dot_plot.add_subplot(111)
 
-    plot_values(axes, points)
+    plot_dot_plot(axes, dots)
+    plot_histogram(hist_axes, histogram_data)
 
-    format_x_axis(axes, x_0)
-    format_y_axis(axes, int(x_0), int(x_0) + 1)
+    format_dot_x_axis(axes, x_0)
+    format_dot_y_axis(axes, int(x_0), int(x_0) + 1)
+
+    format_hist_x_axis(hist_axes, int(x_0), int(x_0) + 1.05)
+
+    histogram.autofmt_xdate()
 
     fig_manager: FigureManagerQT = plt.get_current_fig_manager()
     format_figure(fig_manager)
 
     color_map: ColorMap = calc_color_map(full_json)
-    add_legend(color_map)
-    format_axes(axes)
+    add_dot_legend(axes, color_map)
+
+    format_dot_axes(axes)
 
     if args.debug:
         plt.show()
     else:
-        fig.savefig("figures/journal-entry-times.png")
+        dot_plot.savefig("figures/journal-entry-times.png")
+        histogram.savefig("figures/histogram.png")
 
 
 if __name__ == "__main__":
