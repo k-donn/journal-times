@@ -219,7 +219,7 @@ def plot_dot_plot(axes: Axes, points: List[PointColorVal]) -> List[Line2D]:
     return lines
 
 
-def format_dot_x_axis(dot_plot: Figure, axes: Axes, x_0: float) -> NoReturn:
+def format_dot_x_axis(axes: Axes, x_0: float) -> NoReturn:
     """Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
     Parameters
@@ -229,7 +229,6 @@ def format_dot_x_axis(dot_plot: Figure, axes: Axes, x_0: float) -> NoReturn:
     x_0: `float`
         The earliest day of entry
     """
-    dot_plot.autofmt_xdate()
 
     axes.xaxis_date()
     # Pad the x on the left five in the past and pad the right five in the future
@@ -291,7 +290,7 @@ def set_title(fig_manager: FigureManagerQT) -> NoReturn:
     fig_manager.set_window_title("Journal Entry times")
 
 
-def format_dot(axes: Axes) -> NoReturn:
+def format_dot(dot_plot: Figure, axes: Axes) -> NoReturn:
     """Adjust grid lines and title for the plot (the part that's not the tool-
     bar).
 
@@ -300,6 +299,7 @@ def format_dot(axes: Axes) -> NoReturn:
     axes: `Axes`
         The Axes object describing the graph
     """
+    dot_plot.autofmt_xdate()
 
     axes.set_title("Journal entries date and time of day",
                    fontdict={"fontsize": 18, "family": "Poppins"}, pad=25)
@@ -332,7 +332,21 @@ def format_plt() -> NoReturn:
     plt.style.use("ggplot")
 
 
-def gen_hour_histogram_data(points: List[PointColorVal], x_0: int):
+# def gen_hour_histogram_data(points: List[PointColorVal], x_0: int):
+def gen_hour_histogram_data(points, x_0):
+    """
+
+    Parameters
+    ----------
+    points :
+        
+    x_0 :
+        
+
+    Returns
+    -------
+
+    """
     freq: Dict[int, int] = {}
     day = mpl.dates.num2date(x_0)
     delta = datetime.timedelta(hours=1)
@@ -348,13 +362,42 @@ def gen_hour_histogram_data(points: List[PointColorVal], x_0: int):
     return res
 
 
-def plot_histogram(axes: Axes, hour_data: Dict[int, int]):
+# def plot_histogram(axes: Axes, hour_data: Dict[int, int]):
+def plot_histogram(axes, hour_data):
+    """
+
+    Parameters
+    ----------
+    axes :
+        
+    hour_data :
+        
+
+    Returns
+    -------
+
+    """
     axes.bar(list(hour_data.keys()), list(hour_data.values()), width=0.025)
     axes.xaxis_date()
 
 
-def format_hist_x_axis(histogram: Figure, axes: Axes, left: int, right: int):
-    histogram.autofmt_xdate()
+# def format_hist_x_axis(histogram: Figure, axes: Axes, left: int, right: int):
+def format_hist_x_axis(axes, left, right):
+    """
+
+    Parameters
+    ----------
+    axes :
+        
+    left :
+        
+    right :
+        
+
+    Returns
+    -------
+
+    """
 
     axes.set_xlim(left=left, right=right)
     axes.set_xlabel("Time of day")
@@ -368,7 +411,19 @@ def format_hist_x_axis(histogram: Figure, axes: Axes, left: int, right: int):
     x_axis.set_major_formatter(x_formatter)
 
 
-def format_hist_y_axis(axes: Axes):
+# def format_hist_y_axis(axes: Axes):
+def format_hist_y_axis(axes):
+    """
+
+    Parameters
+    ----------
+    axes :
+        
+
+    Returns
+    -------
+
+    """
     axes.set_ylabel("Number of entries")
     axes.grid(which="major", axis="y", lw=1)
     axes.grid(which="minor", axis="y", lw=0.5)
@@ -382,7 +437,23 @@ def format_hist_y_axis(axes: Axes):
     y_axis.set_minor_locator(y_min_loc)
 
 
-def format_hist(axes: Axes):
+# def format_hist(histogram: Figure, axes: Axes):
+def format_hist(histogram, axes):
+    """
+
+    Parameters
+    ----------
+    histogram :
+        
+    axes :
+        
+
+    Returns
+    -------
+
+    """
+    histogram.autofmt_xdate()
+
     axes.set_title("Frequency of entries throughout the day",
                    fontdict={"fontsize": 18, "family": "Poppins"}, pad=25)
 
@@ -417,13 +488,11 @@ def main() -> NoReturn:
     plot_dot_plot(axes, dots)
     plot_histogram(hist_axes, histogram_data)
 
-    format_dot_x_axis(dot_plot, axes, x_0)
+    format_dot_x_axis(axes, x_0)
     format_dot_y_axis(axes, int(x_0), int(x_0) + 1)
 
-    format_hist_x_axis(histogram, hist_axes, int(x_0), int(x_0) + 1.05)
+    format_hist_x_axis(hist_axes, int(x_0), int(x_0) + 1.05)
     format_hist_y_axis(hist_axes)
-
-    histogram.autofmt_xdate()
 
     fig_manager: FigureManagerQT = plt.get_current_fig_manager()
     set_title(fig_manager)
@@ -431,8 +500,8 @@ def main() -> NoReturn:
     color_map: ColorMap = calc_color_map(full_json)
     add_dot_legend(axes, color_map)
 
-    format_dot(axes)
-    format_hist(hist_axes)
+    format_dot(dot_plot, axes)
+    format_hist(histogram, hist_axes)
 
     if args.debug:
         plt.show()
