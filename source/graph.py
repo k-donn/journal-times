@@ -6,8 +6,6 @@ Display a graph of journal entries from Day One JSON
 """
 # TODO
 # For hist:
-# - Add labels/title
-# - Extract types
 # - Docstrings
 
 import argparse
@@ -24,10 +22,12 @@ import pytz
 from matplotlib.axes._subplots import Axes
 from matplotlib.axis import XAxis, YAxis
 from matplotlib.backends.backend_qt5 import FigureManagerQT
-from matplotlib.dates import (HourLocator, DayLocator, DateFormatter)
+from matplotlib.dates import (
+    HourLocator, DayLocator, MinuteLocator, DateFormatter)
 from matplotlib.figure import Figure
 from matplotlib.legend import Legend
 from matplotlib.lines import Line2D
+from matplotlib.ticker import MultipleLocator
 
 # Mapping of tag names to unique colors
 ColorMap = Dict[str, Tuple[float, float, float, float]]
@@ -69,7 +69,6 @@ def extract_json(fname: str) -> Export:
     -------
     `Export`
         Nested dictionary object with Day One JSON properties
-
     """
     with open(fname, "r") as file:
         full_json = json.load(file)
@@ -77,8 +76,8 @@ def extract_json(fname: str) -> Export:
 
 
 def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
-    """Calculate datetime info, primary tag, and respective color for each entry
-    in the Day One export.
+    """Calculate datetime info, primary tag, and respective color for each
+    entry in the Day One export.
 
     Parameters
     ----------
@@ -89,7 +88,6 @@ def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
     -------
     `Tuple[List[PointColorVal], float]`
         Represents parsed info about entries and earliest date of entry
-
     """
     parsed_entries: List[PointColorVal] = []
     color_map: ColorMap = calc_color_map(full_json)
@@ -126,7 +124,6 @@ def str_to_date(date_str: str) -> datetime.datetime:
     -------
     `datetime.datetime`
         Parsed datetime object
-
     """
     eastern_timezone: pytz.tzfile.DstTzInfo = pytz.timezone("America/New_York")
     correction: datetime.timedelta = datetime.timedelta(hours=2)
@@ -147,7 +144,6 @@ def calc_color_map(full_json: Export) -> ColorMap:
     -------
     `ColorMap`
         Each tag's respective color
-
     """
     entries: List[Entry] = full_json["entries"]
     avail_tags: List[str] = find_tags(entries)
@@ -189,7 +185,6 @@ def find_tags(entries: List[Entry]) -> List[str]:
     -----
     The returned list is sorted in order to get the same mapping every single time given
     the same exported JSON
-
     """
     avail_tags: List[str] = []
 
@@ -213,7 +208,6 @@ def plot_dot_plot(axes: Axes, points: List[PointColorVal]) -> List[Line2D]:
     -------
     `List[Line2D]`
         The returned objects from the matplotlib plotting function
-
     """
     lines: List[Line2D] = [
         axes.plot_date(
@@ -225,7 +219,7 @@ def plot_dot_plot(axes: Axes, points: List[PointColorVal]) -> List[Line2D]:
     return lines
 
 
-def format_dot_x_axis(axes: Axes, x_0: float) -> NoReturn:
+def format_dot_x_axis(dot_plot: Figure, axes: Axes, x_0: float) -> NoReturn:
     """Draw the ticks, format the labels, and adjust sizing for the day-axis.
 
     Parameters
@@ -234,14 +228,14 @@ def format_dot_x_axis(axes: Axes, x_0: float) -> NoReturn:
         The Axes object describing the graph
     x_0: `float`
         The earliest day of entry
-
     """
+    dot_plot.autofmt_xdate()
+
     axes.xaxis_date()
     # Pad the x on the left five in the past and pad the right five in the future
     axes.set_xlim(left=(x_0 - 5),
                   right=(mpl.dates.date2num(datetime.datetime.now().date()) + 5))
     axes.set_xlabel("Date", fontdict={"fontsize": 15})
-    axes.grid(axis="x")
 
     x_loc: DayLocator = DayLocator(interval=10)
     x_formatter: DateFormatter = DateFormatter("%m/%d/%y")
@@ -250,7 +244,6 @@ def format_dot_x_axis(axes: Axes, x_0: float) -> NoReturn:
 
     x_axis.set_major_locator(x_loc)
     x_axis.set_major_formatter(x_formatter)
-    x_axis.set_tick_params(rotation=30)
 
 
 def format_dot_y_axis(axes: Axes, bottom: int, top: int) -> NoReturn:
@@ -264,38 +257,41 @@ def format_dot_y_axis(axes: Axes, bottom: int, top: int) -> NoReturn:
         Midnight of the earliest day
     top: `int`
         Dawn of the earliest day
-
     """
     axes.yaxis_date()
     axes.set_ylim(bottom=bottom, top=top)
     axes.set_ylabel("Time of day", fontdict={"fontsize": 15})
-    axes.grid(axis="y")
+    axes.grid(which="major", axis="y", lw=1)
+    axes.grid(which="minor", axis="y", lw=0.5)
 
     y_loc: HourLocator = HourLocator(interval=2)
     y_formatter: DateFormatter = DateFormatter("%-I:%M %p")
+
+    y_min_loc: MinuteLocator = HourLocator(interval=1)
 
     y_axis: YAxis = axes.get_yaxis()
 
     y_axis.set_major_locator(y_loc)
     y_axis.set_major_formatter(y_formatter)
 
+    y_axis.set_minor_locator(y_min_loc)
+
     # Display morning on top and midnight on bottom. This is different than what
     # we did at assigning `y_vals`
     axes.invert_yaxis()
 
 
-def format_figure(fig_manager: FigureManagerQT) -> NoReturn:
+def set_title(fig_manager: FigureManagerQT) -> NoReturn:
     """Adjust the sizing of the figure (the whole window including tool-bar) to
     be maximized and have a window title.
 
     fig_manager: `FigureManagerQT`
         The returned wrapper around the figure
-
     """
     fig_manager.set_window_title("Journal Entry times")
 
 
-def format_dot_axes(axes: Axes) -> NoReturn:
+def format_dot(axes: Axes) -> NoReturn:
     """Adjust grid lines and title for the plot (the part that's not the tool-
     bar).
 
@@ -303,11 +299,9 @@ def format_dot_axes(axes: Axes) -> NoReturn:
     ----------
     axes: `Axes`
         The Axes object describing the graph
-
     """
-    axes.grid(which="both", axis="both")
 
-    axes.set_title("Journal entry date/time of day",
+    axes.set_title("Journal entries date and time of day",
                    fontdict={"fontsize": 18, "family": "Poppins"}, pad=25)
 
 
@@ -325,7 +319,6 @@ def add_dot_legend(axes: Axes, color_map: ColorMap) -> Legend:
     -------
     `Legend`
         Object describing the added legend
-
     """
     tags: List[str] = list(color_map.keys())
 
@@ -335,7 +328,7 @@ def add_dot_legend(axes: Axes, color_map: ColorMap) -> Legend:
 
 
 def format_plt() -> NoReturn:
-    """Set all top-level attributes of the plot"""
+    """Set all top-level attributes of the plot."""
     plt.style.use("ggplot")
 
 
@@ -360,16 +353,38 @@ def plot_histogram(axes: Axes, hour_data: Dict[int, int]):
     axes.xaxis_date()
 
 
-def format_hist_x_axis(axes: Axes, left: int, right: int):
+def format_hist_x_axis(histogram: Figure, axes: Axes, left: int, right: int):
+    histogram.autofmt_xdate()
+
     axes.set_xlim(left=left, right=right)
+    axes.set_xlabel("Time of day")
 
     x_loc: HourLocator = HourLocator(interval=1)
     x_formatter: DateFormatter = DateFormatter("%-I:%M %p")
 
-    x_axis: YAxis = axes.get_xaxis()
+    x_axis: XAxis = axes.get_xaxis()
 
     x_axis.set_major_locator(x_loc)
     x_axis.set_major_formatter(x_formatter)
+
+
+def format_hist_y_axis(axes: Axes):
+    axes.set_ylabel("Number of entries")
+    axes.grid(which="major", axis="y", lw=1)
+    axes.grid(which="minor", axis="y", lw=0.5)
+
+    y_min_loc = MultipleLocator(5)
+    y_maj_loc = MultipleLocator(10)
+
+    y_axis = axes.get_yaxis()
+
+    y_axis.set_major_locator(y_maj_loc)
+    y_axis.set_minor_locator(y_min_loc)
+
+
+def format_hist(axes: Axes):
+    axes.set_title("Frequency of entries throughout the day",
+                   fontdict={"fontsize": 18, "family": "Poppins"}, pad=25)
 
 
 def main() -> NoReturn:
@@ -402,20 +417,22 @@ def main() -> NoReturn:
     plot_dot_plot(axes, dots)
     plot_histogram(hist_axes, histogram_data)
 
-    format_dot_x_axis(axes, x_0)
+    format_dot_x_axis(dot_plot, axes, x_0)
     format_dot_y_axis(axes, int(x_0), int(x_0) + 1)
 
-    format_hist_x_axis(hist_axes, int(x_0), int(x_0) + 1.05)
+    format_hist_x_axis(histogram, hist_axes, int(x_0), int(x_0) + 1.05)
+    format_hist_y_axis(hist_axes)
 
     histogram.autofmt_xdate()
 
     fig_manager: FigureManagerQT = plt.get_current_fig_manager()
-    format_figure(fig_manager)
+    set_title(fig_manager)
 
     color_map: ColorMap = calc_color_map(full_json)
     add_dot_legend(axes, color_map)
 
-    format_dot_axes(axes)
+    format_dot(axes)
+    format_hist(hist_axes)
 
     if args.debug:
         plt.show()
