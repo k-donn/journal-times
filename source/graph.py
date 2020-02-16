@@ -5,8 +5,9 @@ description:
 Display a graph of journal entries from Day One JSON
 """
 # TODO
+# Refactor types
 # For hist:
-# - Docstrings
+# - Experiment with colors
 
 import argparse
 import datetime
@@ -332,16 +333,15 @@ def format_plt() -> NoReturn:
     plt.style.use("ggplot")
 
 
-# def gen_hour_histogram_data(points: List[PointColorVal], x_0: int):
-def gen_hour_histogram_data(points, x_0):
+def gen_hour_histogram_data(points: List[PointColorVal], x_0: int):
     """
 
     Parameters
     ----------
-    points :
-        
-    x_0 :
-        
+    points : `List[PointColorVal]`
+        List of dicts that represent each entry's day and time of day
+    x_0 : `int`
+        Earliest day of entry
 
     Returns
     -------
@@ -362,16 +362,15 @@ def gen_hour_histogram_data(points, x_0):
     return res
 
 
-# def plot_histogram(axes: Axes, hour_data: Dict[int, int]):
-def plot_histogram(axes, hour_data):
+def plot_histogram(axes: Axes, hour_data: Dict[int, int]):
     """
 
     Parameters
     ----------
     axes :
-        
+
     hour_data :
-        
+
 
     Returns
     -------
@@ -381,18 +380,17 @@ def plot_histogram(axes, hour_data):
     axes.xaxis_date()
 
 
-# def format_hist_x_axis(histogram: Figure, axes: Axes, left: int, right: int):
-def format_hist_x_axis(axes, left, right):
+def format_hist_x_axis(axes: Axes, left: int, right: int):
     """
 
     Parameters
     ----------
     axes :
-        
+
     left :
-        
+
     right :
-        
+
 
     Returns
     -------
@@ -411,14 +409,13 @@ def format_hist_x_axis(axes, left, right):
     x_axis.set_major_formatter(x_formatter)
 
 
-# def format_hist_y_axis(axes: Axes):
-def format_hist_y_axis(axes):
+def format_hist_y_axis(axes: Axes):
     """
 
     Parameters
     ----------
     axes :
-        
+
 
     Returns
     -------
@@ -437,16 +434,15 @@ def format_hist_y_axis(axes):
     y_axis.set_minor_locator(y_min_loc)
 
 
-# def format_hist(histogram: Figure, axes: Axes):
-def format_hist(histogram, axes):
+def format_hist(histogram: Figure, axes: Axes):
     """
 
     Parameters
     ----------
     histogram :
-        
+
     axes :
-        
+
 
     Returns
     -------
