@@ -1,17 +1,30 @@
 # Journal Entry Times
 
-A visual representation of each of the times an entry is made into a Day One journal.
+A visual representation of entries in a Day One journal.
+
+## Usage
+
+```
+usage: python3.7 source/graph.py [-h] -f FILE [-d]
+
+Display a graph of journal entries from Day One JSON
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f FILE, --file FILE  Path to exported Day One JSON file
+  -d, --debug           Show the plot instead of writing to file
+```
 
 ## Running
 
-To run from the root dir:
+To run from the root dir,
 
 -   Create conda env from requirements.txt (see [Install Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html))
--   Copy journal JSON export into ./data or use [Dummy.json](https://github.com/k-donn/journal-times/blob/master/data/gen-dummy.py)
+-   Copy journal [JSON Export](#exporting-journal-json) into ./data or [create dummy data](#generate-dummy-data)
 -   From the root of the folder,
 
 ```
-python3 ./source/graph.py --file ./data/<JOURNAL>.json
+python3.7 ./source/graph.py --file ./data/<JOURNAL>.json
 ```
 
 ## Generate Dummy Data
@@ -19,7 +32,7 @@ python3 ./source/graph.py --file ./data/<JOURNAL>.json
 -   From the root of the foler,
 
 ```
-python3 ./data/gen_dummy.py
+python3.7 ./data/gen_dummy.py
 ```
 
 -   Now, just pass in the new ./data/Dummy.json file to the program
