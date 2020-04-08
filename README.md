@@ -19,7 +19,8 @@ optional arguments:
 
 To run from the root dir,
 
--   Create conda env from requirements.txt (see [Install Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html))
+-   Create conda env from spec-file.txt (see [Install Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html))
+-   `pip` can also be configured with requirements.txt
 -   Copy journal [JSON Export](#exporting-journal-json) into ./data or [create dummy data](#generate-dummy-data)
 -   From the root of the folder,
 
