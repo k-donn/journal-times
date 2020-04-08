@@ -8,6 +8,8 @@ Display a graph of journal entries from Day One JSON
 # Refactor types
 # For hist:
 # - Experiment with colors
+# Move main() initialization to init_anim()
+# Fix newline docstring formatting issue
 
 import argparse
 import datetime
