@@ -7,17 +7,22 @@ import json
 from datetime import datetime, timedelta
 from random import randint
 
-from random_word import RandomWords
-
 
 def generate_entries():
     """Generate tags and dates for entries."""
-    rand_words = RandomWords()
     res = []
     curr_day = datetime.now()
-    avail_tags = rand_words.get_random_words(limit=randint(5, 10))
+
+    words = []
+    file = "/usr/share/dict/cracklib-small"
+    indices = [randint(0, 50000) for i in range(10)]
+    with open(file) as raw_words:
+        for i, line in enumerate(raw_words):
+            if i in indices:
+                words.append(line.strip())
+
     for _i in range(100):
-        # generate between two to five entries every day
+        # generate between two to five entries every dayZ
         curr_day -= timedelta(days=1)
         for _j in range(randint(2, 5)):
             entry = {}
@@ -28,7 +33,7 @@ def generate_entries():
                                   minutes=randint(0, 60),
                                   seconds=randint(0, 60))
             entry["tags"] = []
-            entry["tags"].append(avail_tags[randint(0, len(avail_tags) - 1)])
+            entry["tags"].append(words[randint(0, len(words) - 1)])
             res.append(entry)
     return res
 
@@ -36,8 +41,7 @@ def generate_entries():
 def write_json(file_data):
     """Write the entries to the JSON file."""
     with open("data/Dummy.json", "w") as dummy:
-        entries_str = json.dumps(file_data, indent=4, sort_keys=True)
-        dummy.write(entries_str)
+        json.dump(file_data, dummy)
 
 
 def main():
