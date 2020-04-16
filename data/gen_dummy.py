@@ -1,8 +1,7 @@
 """
-usage:
-python3.7 data/gen_dummy.py
-description:
-Generate dummy data to see how graphing works
+Generate dummy data to see how graphing works.
+
+usage: python3.7 data/gen_dummy.py
 """
 import json
 from datetime import datetime, timedelta
@@ -12,7 +11,7 @@ from random_word import RandomWords
 
 
 def generate_entries():
-    """Generate tags and dates for entries"""
+    """Generate tags and dates for entries."""
     rand_words = RandomWords()
     res = []
     curr_day = datetime.now()
@@ -35,14 +34,14 @@ def generate_entries():
 
 
 def write_json(file_data):
-    """Write the entries to the JSON file"""
+    """Write the entries to the JSON file."""
     with open("data/Dummy.json", "w") as dummy:
         entries_str = json.dumps(file_data, indent=4, sort_keys=True)
         dummy.write(entries_str)
 
 
 def main():
-    """Generate dummy data"""
+    """Generate dummy data."""
     entries = generate_entries()
     file_data = {"metadata": {"version": 1.0}, "entries": entries}
     write_json(file_data)
