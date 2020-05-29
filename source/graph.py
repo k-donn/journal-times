@@ -9,7 +9,7 @@ optional arguments:
   -d, --debug           Show the plot instead of writing to file
 """
 # TODO
-# Refactor types
+# Refactor types to TypedDict
 # For hist:
 # - Experiment with colors
 # Move main() initialization to init_anim()
