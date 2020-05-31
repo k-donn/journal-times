@@ -4,39 +4,39 @@ A visual representation of entries in a Day One journal.
 
 ## Usage
 
-```
-usage: python3.7 source/graph.py [-h] -f FILE [-d]
+```bash
+usage: run.py [-h] -f FILE [-d]
 
 Display a graph of journal entries from Day One JSON
 
 optional arguments:
   -h, --help            show this help message and exit
   -f FILE, --file FILE  Path to exported Day One JSON file
-  -d, --debug           Show the plot instead of writing to file
+  -d, --debug           Show the plots instead of writing to file
 ```
 
 ## Running
 
 To run from the root dir,
 
--   Create conda env from spec-file.txt (see [Install Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html))
+-   Create conda env from `environment.yml` (see [Install Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html))
 -   `pip` can also be configured with requirements.txt
--   Copy journal [JSON Export](#exporting-journal-json) into ./data or [create dummy data](#generate-dummy-data)
+-   Copy journal [JSON Export](#exporting-journal-json) into `./data` or [create dummy data](#generate-dummy-data)
 -   From the root of the folder,
 
-```
-python3.7 ./source/graph.py --file ./data/<JOURNAL>.json
+```bash
+python3.8 run.py --file ./data/<JOURNAL>.json
 ```
 
 ## Generate Dummy Data
 
 -   From the root of the foler,
 
-```
-python3.7 ./data/gen_dummy.py
+```bash
+python3.8 ./data/gen_dummy.py
 ```
 
--   Now, just pass in the new ./data/Dummy.json file to the program
+-   Now, just pass in the new ./data/Dummy.json file into `run.py`
 
 ## Exporting Journal JSON
 

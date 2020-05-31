@@ -65,5 +65,4 @@ dependencies:
   - wrapt=1.12.1=py38h7b6447c_1
   - xz=5.2.4=h14c3975_4
   - zlib=1.2.11=h7b6447c_3
-prefix: /home/kevind/miniconda3/envs/ec-3.8
 

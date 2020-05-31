@@ -1,15 +1,5 @@
-"""
-Display a graph of journal entries from Day One JSON.
-
-usage: python3.7 source/graph.py [-h] -f FILE [-d]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -f FILE, --file FILE  Path to exported Day One JSON file
-  -d, --debug           Show the plot instead of writing to file
-"""
+"""Analyze data and show graphs."""
 # TODO
-# Refactor types to TypedDict
 # For hist:
 # - Experiment with colors
 # Move main() initialization to init_anim()
@@ -18,7 +8,7 @@ import argparse
 import datetime
 import json
 from operator import itemgetter
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 import matplotlib as mpl
 import matplotlib.cm as cm
@@ -27,7 +17,6 @@ import matplotlib.pyplot as plt
 import pytz
 import tzlocal
 from matplotlib.axes._subplots import Axes
-from matplotlib.axis import XAxis, YAxis
 from matplotlib.backends.backend_qt5 import FigureManagerQT
 from matplotlib.container import BarContainer
 from matplotlib.dates import DateFormatter, DayLocator, HourLocator
@@ -36,32 +25,7 @@ from matplotlib.legend import Legend
 from matplotlib.lines import Line2D
 from matplotlib.ticker import MultipleLocator
 
-# Mapping of tag names to unique colors
-ColorMap = Dict[str, Tuple[float, float, float, float]]
-
-# Represents a point's color and x & y values
-PointColorVal = Dict[str, Union[str, float]]
-
-# Day One weather properties
-WeatherProps = Dict[str, Union[str, int, float]]
-
-# Day One coordinates description
-Coordinates = Dict[str, float]
-
-# Day One location region description
-RegionProps = Dict[str, Union[str, float, Coordinates]]
-
-# Day One location properties
-LocationProps = Dict[str, Union[str, float, RegionProps]]
-
-# Properties of a JSON entry
-Entry = Dict[str, Union[str, bool, int, WeatherProps, LocationProps]]
-
-# Day One export metadata info
-MetadataProps = Dict[str, str]
-
-# structure of an exported journal
-Export = Dict[str, Union[MetadataProps, List[Entry]]]
+from .types import *
 
 
 def extract_json(fname: str) -> Export:
@@ -172,8 +136,8 @@ def calc_color_map(full_json: Export) -> ColorMap:
         Each tag's respective color
 
     """
-    entries: List[Entry] = full_json["entries"]
-    avail_tags: List[str] = find_tags(entries)
+    entries = full_json["entries"]
+    avail_tags = find_tags(entries)
 
     color_map: ColorMap = {}
 
@@ -267,10 +231,10 @@ def format_dot_x_axis(axes: Axes, x_0: float) -> None:
                   right=(mpl.dates.date2num(datetime.datetime.now().date()) + 5))
     axes.set_xlabel("Date", fontdict={"fontsize": 15})
 
-    x_loc: DayLocator = DayLocator(interval=10)
-    x_formatter: DateFormatter = DateFormatter("%m/%d/%y")
+    x_loc = DayLocator(interval=10)
+    x_formatter = DateFormatter("%m/%d/%y")
 
-    x_axis: XAxis = axes.get_xaxis()
+    x_axis = axes.get_xaxis()
 
     x_axis.set_major_locator(x_loc)
     x_axis.set_major_formatter(x_formatter)
@@ -297,12 +261,12 @@ def format_dot_y_axis(axes: Axes, bottom: float, top: float) -> None:
     axes.grid(which="major", axis="y", lw=1)
     axes.grid(which="minor", axis="y", lw=0.5)
 
-    y_loc: HourLocator = HourLocator(interval=2)
-    y_formatter: DateFormatter = DateFormatter("%-I:%M %p")
+    y_loc = HourLocator(interval=2)
+    y_formatter = DateFormatter("%-I:%M %p")
 
-    y_min_loc: HourLocator = HourLocator(interval=1)
+    y_min_loc = HourLocator(interval=1)
 
-    y_axis: YAxis = axes.get_yaxis()
+    y_axis = axes.get_yaxis()
 
     y_axis.set_major_locator(y_loc)
     y_axis.set_major_formatter(y_formatter)
@@ -349,10 +313,10 @@ def add_dot_legend(axes: Axes, color_map: ColorMap) -> Legend:
         Object describing the added legend
 
     """
-    tags: List[str] = list(color_map.keys())
+    tags = list(color_map.keys())
 
-    lines: List[Line2D] = [Line2D([], [], color=color, label=tag,
-                                  marker="o", linestyle="none") for tag, color in color_map.items()]
+    lines = [Line2D([], [], color=color, label=tag,
+                    marker="o", linestyle="none") for tag, color in color_map.items()]
     return axes.legend(lines, tags, loc=7, bbox_to_anchor=(1.12, 0.5))
 
 
@@ -439,10 +403,10 @@ def format_hist_x_axis(hist_axes: Axes, left: float, right: float) -> None:
     hist_axes.set_xlim(left=left, right=right)
     hist_axes.set_xlabel("Time of day")
 
-    x_loc: HourLocator = HourLocator(interval=1)
-    x_formatter: DateFormatter = DateFormatter("%-I:%M %p")
+    x_loc = HourLocator(interval=1)
+    x_formatter = DateFormatter("%-I:%M %p")
 
-    x_axis: XAxis = hist_axes.get_xaxis()
+    x_axis = hist_axes.get_xaxis()
 
     x_axis.set_major_locator(x_loc)
     x_axis.set_major_formatter(x_formatter)
@@ -488,19 +452,17 @@ def format_hist(histogram: Figure, hist_axes: Axes) -> None:
                         fontdict={"fontsize": 18, "family": "Poppins"}, pad=25)
 
 
-def main() -> None:
-    """Display a graph of journal entries from Day One JSON."""
-    parser = argparse.ArgumentParser(
-        prog="python3.7 source/graph.py",
-        description="Display a graph of journal entries from Day One JSON")
-    parser.add_argument("-f", "--file", required=True,
-                        help="Path to exported Day One JSON file")
-    parser.add_argument("-d", "--debug", action="store_true",
-                        help="Show the plot instead of writing to file")
+def main(file: str, debug: bool) -> None:
+    """Display a graph of journal entries from Day One JSON.
 
-    args = parser.parse_args()
-
-    full_json: Export = extract_json(args.file)
+    Parameters
+    ----------
+    file : str
+        Path to exported JSON
+    debug : bool
+        Whether or not show graphs
+    """
+    full_json: Export = extract_json(file)
 
     dots, x_0 = parse_entries(full_json)
 
@@ -533,12 +495,8 @@ def main() -> None:
     format_dot(dot_plot, axes)
     format_hist(histogram, hist_axes)
 
-    if args.debug:
+    if debug:
         plt.show()
     else:
         dot_plot.savefig("figures/journal-entry-times.png")
         histogram.savefig("figures/histogram.png")
-
-
-if __name__ == "__main__":
-    main()
