@@ -25,12 +25,12 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import pytz
+import tzlocal
 from matplotlib.axes._subplots import Axes
 from matplotlib.axis import XAxis, YAxis
 from matplotlib.backends.backend_qt5 import FigureManagerQT
 from matplotlib.container import BarContainer
-from matplotlib.dates import (DateFormatter, DayLocator, HourLocator,
-                              MinuteLocator)
+from matplotlib.dates import DateFormatter, DayLocator, HourLocator
 from matplotlib.figure import Figure
 from matplotlib.legend import Legend
 from matplotlib.lines import Line2D
@@ -105,13 +105,16 @@ def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
 
     earliest_entry: Entry = min(
         full_json["entries"], key=itemgetter("creationDate"))
-    x_0: float = mpl.dates.date2num(str_to_date(earliest_entry["creationDate"]))
+    x_0: float = mpl.dates.date2num(
+        str_to_date(earliest_entry["creationDate"]))
 
     for entry in full_json["entries"]:
         entry_info: PointColorVal = {}
         date = str_to_date(entry["creationDate"])
+        print(f"{date=}")
         x_val = mpl.dates.date2num(date.date())
-        y_val = int(x_0) + abs(1.0 - (mpl.dates.date2num(date) % 1))
+        y_val = int(x_0) + mpl.dates.date2num(date) % 1
+
         tag: str = ""
         if "tags" in entry:
             tag = entry["tags"][0]
@@ -126,6 +129,12 @@ def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
 def str_to_date(date_str: str) -> datetime.datetime:
     """Convert a string in Day One format to a datetime object.
 
+    Matplotlib isn't compatible with timezone aware datetime objects.
+    If one is passed to date2num, it undergoes unpredicted behaviour.
+    This calculates the offset (offset from UTC changes based on a lot of things)
+    then applies that offset via a timedelta object that doesn't affect/apply
+    timezone info.
+
     Parameters
     ----------
     date_str: `str`
@@ -137,11 +146,16 @@ def str_to_date(date_str: str) -> datetime.datetime:
         Parsed datetime object
 
     """
-    eastern_timezone: pytz.tzfile.DstTzInfo = pytz.timezone("America/New_York")
-    correction: datetime.timedelta = datetime.timedelta(hours=2)
-    final: datetime.datetime = datetime.datetime.strptime(
-        date_str, "%Y-%m-%dT%H:%M:%SZ").astimezone(eastern_timezone) - correction
-    return final
+    utc_time = datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
+
+    # This automatically calculates the offset to user's timezone
+    # The offset is different throughout the year
+    local_timezone = tzlocal.get_localzone()
+    local_time_auto = utc_time.replace(tzinfo=pytz.utc)
+    local_time_auto = utc_time.astimezone(local_timezone)
+
+    local_time = utc_time + local_time_auto.utcoffset()
+    return local_time
 
 
 def calc_color_map(full_json: Export) -> ColorMap:
