@@ -6,6 +6,7 @@ usage: python3.8 data/gen_dummy.py
 # TODO
 # Add try/catch for existance of words file
 import json
+import random_word
 from datetime import datetime, timedelta
 from random import randint
 
@@ -15,13 +16,7 @@ def generate_entries():
     res = []
     curr_day = datetime.now()
 
-    words = []
-    file = "/usr/share/dict/words"
-    indices = [randint(0, 50000) for i in range(10)]
-    with open(file) as raw_words:
-        for i, line in enumerate(raw_words):
-            if i in indices:
-                words.append(line.strip())
+    words = random_word.RandomWords().get_random_words(limit=10)
 
     for _i in range(100):
         # generate between five to ten entries every day

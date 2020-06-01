@@ -90,3 +90,5 @@ dependencies:
   - xz=5.2.5=h7b6447c_0
   - yaml=0.1.7=had09818_2
   - zlib=1.2.11=h7b6447c_3
+  - pip:
+    - random-word==1.0.4
