@@ -26,7 +26,7 @@ google-auth-oauthlib==0.4.1
 googleapis-common-protos==1.51.0
 greenlet==0.4.15
 html2text==2020.1.16
-httplib2==0.17.3
+httplib2==0.18.0
 idna==2.9
 importlib==1.0.4
 importlib-resources==1.4.0
