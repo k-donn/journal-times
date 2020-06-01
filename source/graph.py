@@ -2,9 +2,8 @@
 # TODO
 # For hist:
 # - Experiment with colors
-# Move main() initialization to init_anim()
+# - Make stacked bar chart with tags
 
-import argparse
 import datetime
 import json
 from operator import itemgetter
@@ -14,6 +13,7 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
+import numpy as np
 import pytz
 import tzlocal
 from matplotlib.axes._subplots import Axes
@@ -75,7 +75,6 @@ def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
     for entry in full_json["entries"]:
         entry_info: PointColorVal = {}
         date = str_to_date(entry["creationDate"])
-        print(f"{date=}")
         x_val = mpl.dates.date2num(date.date())
         y_val = int(x_0) + mpl.dates.date2num(date) % 1
 
@@ -84,7 +83,7 @@ def parse_entries(full_json: Export) -> Tuple[List[PointColorVal], float]:
             tag = entry["tags"][0]
         else:
             tag = "none"
-        entry_info = {"color": color_map[tag],
+        entry_info = {"color": color_map[tag], "tag": tag,
                       "x_value": x_val, "y_value": y_val}
         parsed_entries.append(entry_info)
     return (parsed_entries, x_0)
@@ -150,8 +149,9 @@ def calc_color_map(full_json: Export) -> ColorMap:
     mapper: cm.ScalarMappable = cm.ScalarMappable(
         norm=norm, cmap=cm.gist_ncar)  # pylint: disable=no-member
 
+    # always map none to black, index-map non-none
     color_map = {tag: mapper.to_rgba(index)
-                 for index, tag in enumerate(avail_tags)}
+                 for index, tag in enumerate(avail_tags) if tag != "none"}
 
     color_map["none"] = (0.0, 0.0, 0.0, 1.0)
 
@@ -180,6 +180,8 @@ def find_tags(entries: List[Entry]) -> List[str]:
     avail_tags: List[str] = []
 
     avail_tags = [entry["tags"][0] for entry in entries if "tags" in entry]
+
+    avail_tags.append("none")
 
     # Sort them to get the same color-mapping each time
     return sorted(list(set(avail_tags)))
@@ -326,7 +328,7 @@ def format_plt() -> None:
 
 
 def gen_hour_histogram_data(
-        points: List[PointColorVal], x_0: int) -> Dict[float, int]:
+        points: List[PointColorVal], x_0: int, tags: List[str]) -> Dict[str, Dict[float, int]]:
     """Extract the frequency of entries throughout the day.
 
     Parameters
@@ -339,37 +341,38 @@ def gen_hour_histogram_data(
 
     Returns
     -------
-    `Dict[float, int]`
-        A dict where each key is a matplotlib date that corresponds to an hour
-        of the day, and where each value is the number of entries made on that
-        hour.
-
+    `Dict[str, Dict[float, int]]`
+        A dict of dicts for the frquency of each tag per hour
     """
-    freq: Dict[int, int] = {}
-    day = mpl.dates.num2date(x_0)
-    delta = datetime.timedelta(hours=1)
-    for i in range(1, 25):
-        freq[i] = 0
-    for point in points:
-        date_obj = mpl.dates.num2date(point["y_value"])
-        freq[date_obj.hour + 1] += 1
-    res: Dict[float, int] = {}
-    for hour, length in freq.items():
-        res[mpl.dates.date2num(day + (delta * hour))] = length
+    freq: Dict[str, Dict[float, int]] = {}
+    for tag in tags:
+        tag_freq: Dict[float, int] = {}
+        day = mpl.dates.num2date(x_0)
+        delta = datetime.timedelta(hours=1)
+        for i in range(0, 25):
+            tag_freq[i] = 0
+        for point in points:
+            date_obj = mpl.dates.num2date(point["y_value"])
+            if point["tag"] == tag:
+                tag_freq[date_obj.hour] += 1
+        res: Dict[float, int] = {}
+        for hour, length in tag_freq.items():
+            res[mpl.dates.date2num(day + (delta * hour))] = length
+        freq[tag] = res
 
-    return res
+    return freq
 
 
 def plot_histogram(
-        hist_axes: Axes, hour_data: Dict[float, int]) -> BarContainer:
-    """Plot bars representing frequency of entries throughout the day.
+        hist_axes: Axes, hour_data: Dict[str, Dict[float, int]], color_map: ColorMap) -> List[BarContainer]:
+    """Plot bars representing frequency of entries throughout the day for each tag.
 
     Parameters
     ----------
     hist_axes : `Axes`
         The Axes object describing the graph
 
-    hour_data : `Dict[float, int]`
+    hour_data : `Dict[str, Dict[float, int]]`
         Frequency of entries throughout the day
 
     Returns
@@ -378,8 +381,21 @@ def plot_histogram(
         Object containing all of the plotted bars
 
     """
-    bars: BarContainer = hist_axes.bar(
-        list(hour_data.keys()), list(hour_data.values()), width=0.025)
+    bars: List[BarContainer] = []
+    total_height = None
+    for tag, tag_freq in hour_data.items():
+        keys = list(tag_freq.keys())
+        values = list(tag_freq.values())
+        if len(bars) > 0:
+            tag_bars = hist_axes.bar(
+                keys, values, width=0.025, label=tag, color=color_map[tag], bottom=total_height)
+        else:
+            tag_bars = hist_axes.bar(
+                keys, values, width=0.025, label=tag, color=color_map[tag])
+            total_height = np.zeros(len(tag_freq.values()))
+
+        total_height += np.array(list(tag_freq.values()))
+        bars.append(tag_bars)
     hist_axes.xaxis_date()
 
     return bars
@@ -466,7 +482,9 @@ def main(file: str, debug: bool) -> None:
 
     dots, x_0 = parse_entries(full_json)
 
-    histogram_data = gen_hour_histogram_data(dots, int(x_0))
+    tags = find_tags(full_json["entries"])
+    histogram_data = gen_hour_histogram_data(dots, int(x_0), tags)
+    color_map = calc_color_map(full_json)
 
     dot_plot: Figure = plt.figure(figsize=(16, 9), dpi=120)
     histogram: Figure = plt.figure(figsize=(16, 9), dpi=120)
@@ -477,23 +495,24 @@ def main(file: str, debug: bool) -> None:
     axes: Axes = dot_plot.add_subplot(111)
 
     plot_dot_plot(axes, dots)
-    plot_histogram(hist_axes, histogram_data)
+    plot_histogram(hist_axes, histogram_data, color_map)
 
     format_dot_x_axis(axes, x_0)
     format_dot_y_axis(axes, int(x_0), int(x_0) + 1)
 
-    format_hist_x_axis(hist_axes, int(x_0), int(x_0) + 1.05)
+    format_hist_x_axis(hist_axes, int(x_0) - 0.02, int(x_0) + 0.980)
     format_hist_y_axis(hist_axes)
 
-    fig_manager: Optional[FigureManagerQT] = plt.get_current_fig_manager()
-    if fig_manager is not None:
-        fig_manager.set_window_title("Journal Entry Times")
-
-    color_map: ColorMap = calc_color_map(full_json)
     add_dot_legend(axes, color_map)
 
     format_dot(dot_plot, axes)
     format_hist(histogram, hist_axes)
+
+    hist_axes.legend()
+
+    fig_manager: Optional[FigureManagerQT] = plt.get_current_fig_manager()
+    if fig_manager is not None:
+        fig_manager.set_window_title("Journal Entry Times")
 
     if debug:
         plt.show()
