@@ -1,11 +1,11 @@
 # This workflow will install Python dependencies, generate new Dummy.json file, and commit to master
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python application
+name: Gen Dummy
 
 on:
   schedule:
-    - cron: '10 20 * * 6'
+    - cron: '20 2 * * 6'
 
 jobs:
   build:

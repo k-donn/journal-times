@@ -29,7 +29,6 @@ python3.8 run.py --file ./data/<JOURNAL>.json
 
 ## Generate Dummy Data
 
--   Have a /usr/share/dict/words
 -   From the root of the foler,
 
 ```bash
