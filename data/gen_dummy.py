@@ -4,33 +4,43 @@ Generate dummy data to see how graphing works.
 usage: python3.8 data/gen_dummy.py
 """
 # TODO
-# Add try/catch for existance of words file
+# add output file option
+
 import json
-import random_word
+import sys
 from datetime import datetime, timedelta
-from random import randint
+from random import choice, randint
 
 
 def generate_entries():
     """Generate tags and dates for entries."""
     res = []
-    curr_day = datetime.now()
+    curr_time = datetime.now()
 
-    words = random_word.RandomWords().get_random_words(limit=10)
+    words = [
+        "telefragged",
+        "groundsheets",
+        "rumina",
+        "vigias",
+        "chromatolysis",
+        "predisposing",
+        "goldenseal",
+        "bladderwrack",
+        "oxiconazole",
+        "dition"]
 
     for _i in range(100):
         # generate between five to ten entries every day
-        curr_day -= timedelta(days=1)
+        curr_time -= timedelta(days=1)
         for _j in range(randint(5, 10)):
             entry = {}
 
-            entry["creationDate"] = curr_day.strftime("%Y-%m-%dT%H:%M:%SZ")
+            entry["creationDate"] = curr_time.strftime("%Y-%m-%dT%H:%M:%SZ")
             # five-ish to ten-ish hours between entries each day
-            curr_day -= timedelta(hours=randint(5, 10),
-                                  minutes=randint(0, 60),
-                                  seconds=randint(0, 60))
-            entry["tags"] = []
-            entry["tags"].append(words[randint(0, len(words) - 1)])
+            curr_time -= timedelta(hours=randint(5, 10),
+                                   minutes=randint(0, 60),
+                                   seconds=randint(0, 60))
+            entry["tags"] = [choice(words)]
             res.append(entry)
     return res
 
@@ -49,4 +59,8 @@ def main():
 
 
 if __name__ == "__main__":
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print(__doc__)
+        exit(0)
+
     main()

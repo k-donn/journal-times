@@ -1,5 +1,6 @@
-.vscode/
 *.old.py
 *.patch
 .DS_STORE
+
+.vscode/
 __pycache__/
