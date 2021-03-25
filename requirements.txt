@@ -61,7 +61,7 @@ python==3.8.3
 python-dateutil==2.8.1
 python_abi==3.8
 pytz==2020.1
-pyyaml==5.3.1
+pyyaml==5.4
 qt==5.9.7
 readline==8.0
 requests==2.23.0
