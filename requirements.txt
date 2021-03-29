@@ -51,7 +51,7 @@ pcre==8.43
 pip==20.0.2
 pycparser==2.20
 pydocstyle==4.0.1
-pygments==2.6.1
+pygments==2.7.4
 pylint==2.5.2
 pyopenssl==19.1.0
 pyparsing==2.4.7
