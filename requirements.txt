@@ -48,7 +48,7 @@ numpy-base==1.18.1
 openssl==1.1.1g
 pathtools==0.1.2
 pcre==8.43
-pip==20.0.2
+pip==21.1
 pycparser==2.20
 pydocstyle==4.0.1
 pygments==2.6.1
