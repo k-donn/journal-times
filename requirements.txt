@@ -79,7 +79,7 @@ urllib3==1.25.8
 urwid==2.1.0
 watchdog==0.10.2
 wcwidth==0.1.9
-wheel==0.34.2
+wheel==0.38.1
 wrapt==1.11.2
 xz==5.2.5
 yaml==0.1.7
