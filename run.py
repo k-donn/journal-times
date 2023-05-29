@@ -1,7 +1,7 @@
 """
 Display a graph of journal entries from Day One JSON.
 
-usage: run.py [-h] -f FILE [-d]
+usage: python run.py [-h] -f FILE [-d]
 
 optional arguments:
   -h, --help            show this help message and exit
