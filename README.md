@@ -5,7 +5,7 @@ A visual representation of entries in a Day One journal.
 ## Usage
 
 ```bash
-usage: run.py [-h] -f FILE [-d]
+usage: python run.py [-run.py [-h] -f FILE [-d]
 
 Display a graph of journal entries from Day One JSON
 
@@ -24,7 +24,7 @@ To run from the root dir,
 -   From the root of the folder,
 
 ```bash
-python3.8 run.py --file ./data/<JOURNAL>.json
+python run.py --file ./data/<JOURNAL>.json
 ```
 
 ## Generate Dummy Data
@@ -32,7 +32,7 @@ python3.8 run.py --file ./data/<JOURNAL>.json
 -   From the root of the foler,
 
 ```bash
-python3.8 ./data/gen_dummy.py
+python ./data/gen_dummy.py
 ```
 
 -   Now, just pass in the new ./data/Dummy.json file into `run.py`
